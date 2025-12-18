@@ -1,50 +1,39 @@
-import React from 'react';
-import { Sidebar } from '../../components/layout/Sidebar';
-import { TripChat } from '../../components/trip-details/TripChat';
+import React, { useState } from 'react';
 import { ItineraryFeed } from '../../components/trip-details/ItineraryFeed';
 import { TripSidebar } from '../../components/trip-details/TripSidebar';
 import { TripDetailsProvider, useTripDetails } from '../../components/trip-details/TripDetailsContext';
 import { Sheet, SheetContent, SheetTrigger } from '../../components/ui/sheet';
 import { Button } from '../../components/ui/button';
-import { MessageSquare, Layout } from 'lucide-react';
+import { Layout } from 'lucide-react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useParams } from 'react-router-dom';
+import { cn } from '../../components/ui/utils';
+
+import { AIItineraryBridge } from '../../components/trip-details/AIItineraryBridge';
 
 // Inner Layout Component that uses the Context
 const TripDetailsLayout = () => {
-  const { isChatOpen, toggleChat, activePanel, setActivePanel } = useTripDetails();
+  const { activePanel, setActivePanel } = useTripDetails();
+  // Desktop Sidebar State (Collapsible)
+  const [isToolsCollapsed, setIsToolsCollapsed] = useState(false);
 
   return (
     <div className="flex h-screen overflow-hidden bg-white">
-      {/* 0. Main App Navigation (Far Left) - Hidden on Mobile */}
-      <Sidebar className="hidden lg:flex w-[60px] md:w-[240px] border-r border-slate-200 z-30" /> 
+      <AIItineraryBridge />
+      {/* Main App Navigation provided by AppShell */}
 
       {/* TRIP OS CONTENT AREA */}
       <div className="flex-1 flex overflow-hidden relative">
         
-        {/* 1. LEFT: Chat (25%) - Desktop Only */}
-        <div className="w-[350px] xl:w-[25%] hidden xl:block h-full border-r border-slate-100 bg-white z-20">
-           <TripChat />
-        </div>
-
-        {/* 2. CENTER: Itinerary (45%) - Always Visible */}
+        {/* CENTER: Itinerary (Flex-1) - Always Visible. */}
         <div className="flex-1 h-full overflow-y-auto scrollbar-hide bg-[#FDFBF7] relative z-10 shadow-[0_0_40px_-10px_rgba(0,0,0,0.1)]">
            <ItineraryFeed />
            
-           {/* Mobile Floating Actions */}
-           <div className="xl:hidden fixed bottom-6 right-6 z-50 flex flex-col gap-4">
-              {/* Chat Toggle */}
-              <Sheet>
-                 <SheetTrigger asChild>
-                    <Button className="h-14 w-14 rounded-full bg-emerald-900 shadow-luxury flex items-center justify-center">
-                       <MessageSquare className="w-6 h-6 text-white" />
-                    </Button>
-                 </SheetTrigger>
-                 <SheetContent side="left" className="w-[90%] sm:w-[400px] p-0">
-                    <TripChat />
-                 </SheetContent>
-              </Sheet>
-
+           {/* Mobile Floating Actions 
+               Positioned higher (bottom-24) to avoid overlap with Global AI Concierge (bottom-6)
+           */}
+           <div className="lg:hidden fixed bottom-24 right-6 z-40 flex flex-col gap-4">
               {/* Sidebar/Tools Toggle */}
               <Sheet>
                  <SheetTrigger asChild>
@@ -52,24 +41,33 @@ const TripDetailsLayout = () => {
                        <Layout className="w-6 h-6 text-slate-700" />
                     </Button>
                  </SheetTrigger>
-                 <SheetContent side="right" className="w-[90%] sm:w-[400px] p-0">
-                    <TripSidebar />
+                 <SheetContent side="bottom" className="h-[80vh] w-full p-0 rounded-t-2xl">
+                    <div className="h-full w-full overflow-hidden rounded-t-2xl">
+                        {/* Always expanded on mobile */}
+                        <TripSidebar />
+                    </div>
                  </SheetContent>
               </Sheet>
            </div>
         </div>
 
-        {/* 3. RIGHT: Sidebar Tools (30%) - Desktop Only */}
-        <div className="w-[320px] xl:w-[30%] hidden lg:block h-full relative z-20 bg-slate-50">
-           <TripSidebar />
+        {/* RIGHT: Sidebar Tools - Desktop Only */}
+        <div 
+           className={cn(
+               "hidden lg:block h-full relative z-20 bg-slate-50 border-l border-slate-200 shadow-[-10px_0_30px_-10px_rgba(0,0,0,0.03)] transition-all duration-300 ease-in-out will-change-[width]",
+               isToolsCollapsed ? "w-[72px]" : "w-[360px]"
+           )}
+        >
+           <TripSidebar 
+               collapsed={isToolsCollapsed} 
+               onToggle={() => setIsToolsCollapsed(prev => !prev)} 
+           />
         </div>
 
       </div>
     </div>
   );
 };
-
-import { useParams } from 'react-router-dom';
 
 // Main Export with Provider
 export default function TripDetailsPage() {

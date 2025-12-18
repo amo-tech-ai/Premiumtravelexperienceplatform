@@ -16,7 +16,6 @@ import WizardFlow from './pages/WizardFlow';
 import { AIProvider } from './context/AIContext';
 import { WizardProvider } from './context/WizardContext';
 import { TripProvider } from './context/TripContext';
-import { ChatOverlay } from './components/wizard/ChatOverlay';
 import { AIWizardBridge } from './components/ai/AIWizardBridge';
 
 import { AppShell } from './components/layout/AppShell';
@@ -52,7 +51,7 @@ function App() {
           <WizardProvider>
             <ScrollToTop />
             <AppShell>
-            <Routes>
+          <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/experiences/medellin" element={<MedellinExperiencesPage />} />
               <Route path="/map" element={<Explorer />} />
@@ -92,7 +91,6 @@ function App() {
             {/* 404 Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <ChatOverlay />
           <AIWizardBridge />
         </AppShell>
         </WizardProvider>

@@ -147,7 +147,7 @@ export function ChatInterface() {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about events, properties..."
+            placeholder="Ask about events, stays, or plans..."
             className="rounded-full pr-12 bg-slate-50 border-slate-200 focus:bg-white focus:border-emerald-500 transition-all h-12"
           />
           <Button 

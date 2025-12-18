@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { toast } from 'sonner@2.0.3';
+import { optimizeByProximity, detectConflicts, autoScheduleTimes, generateSmartRecommendations, WeatherCondition, getWeatherSuggestions } from '../../utils/aiAutomation';
 
 // --- TYPES ---
 export type TripItemType = 'logistics' | 'food' | 'activity' | 'stay';
@@ -13,6 +14,7 @@ export interface TripItem {
   notes?: string;
   image?: string;
   status?: 'planned' | 'booked' | 'confirmed';
+  cost?: number;
 }
 
 export interface TripDay {
@@ -26,12 +28,19 @@ interface TripDetailsContextType {
   days: TripDay[];
   activePanel: string | null;
   isChatOpen: boolean;
+  conflicts: string[];
+  recommendations: string[];
   
   // Actions
   setActivePanel: (panel: string | null) => void;
   toggleChat: () => void;
   addItemToDay: (dayIndex: number, item: Omit<TripItem, 'id'>) => void;
   moveItem: (fromDay: number, toDay: number, itemId: string) => void;
+  autoGenerateTrip: () => void;
+  optimizeItinerary: () => void;
+  autoScheduleDay: (dayIndex: number) => void;
+  checkConflicts: () => void;
+  applyTemplate: (templateId: string) => void;
 }
 
 // --- MOCK INITIAL DATA ---
@@ -82,6 +91,8 @@ export function TripDetailsProvider({ children, tripId }: { children: ReactNode,
 
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false); // Mobile toggle mainly
+  const [conflicts, setConflicts] = useState<string[]>([]);
+  const [recommendations, setRecommendations] = useState<string[]>([]);
 
   // Persist to LocalStorage
   useEffect(() => {
@@ -100,8 +111,15 @@ export function TripDetailsProvider({ children, tripId }: { children: ReactNode,
     
     setDays(prev => {
         const newDays = [...prev];
-        // Ensure day exists
-        if (!newDays[dayIndex]) return prev;
+        // Ensure day exists (and fill gaps if needed)
+        if (!newDays[dayIndex]) {
+           // Create day if missing (simple fallback)
+           newDays[dayIndex] = {
+               day: dayIndex + 1,
+               date: `Day ${dayIndex + 1}`,
+               items: []
+           };
+        }
         
         newDays[dayIndex] = {
             ...newDays[dayIndex],
@@ -113,15 +131,165 @@ export function TripDetailsProvider({ children, tripId }: { children: ReactNode,
     toast.success(`Added ${item.title} to Day ${dayIndex + 1}`);
   };
 
-  const moveItem = (fromDay: number, toDay: number, itemId: string) => {
-    // Advanced logic for DnD later
-    console.log('Move item', { fromDay, toDay, itemId });
+  const moveItem = (fromDayIndex: number, toDayIndex: number, itemId: string) => {
+    setDays(prev => {
+        const newDays = [...prev]; // Shallow copy of array
+        
+        // Deep copy of modified days to avoid mutation
+        const sourceDay = { ...newDays[fromDayIndex], items: [...newDays[fromDayIndex].items] };
+        const targetDay = fromDayIndex === toDayIndex 
+            ? sourceDay 
+            : { ...newDays[toDayIndex], items: [...newDays[toDayIndex].items] };
+
+        // Find item
+        const itemIndex = sourceDay.items.findIndex(i => i.id === itemId);
+        if (itemIndex === -1) return prev;
+
+        // Remove
+        const [item] = sourceDay.items.splice(itemIndex, 1);
+        
+        // Add (Append for now)
+        targetDay.items.push(item);
+        
+        // Update state
+        newDays[fromDayIndex] = sourceDay;
+        if (fromDayIndex !== toDayIndex) {
+            newDays[toDayIndex] = targetDay;
+        }
+
+        return newDays;
+    });
+    
+    // toast.success("Item moved");
+  };
+
+  const autoGenerateTrip = () => {
+     // Mock AI Generation - Smarter Logic
+     // In a real app, this would call an API with the User's Preferences
+     
+     const MOCK_ITINERARY_A = [
+        {
+           day: 0, 
+           items: [
+              { id: 'gen1', title: 'Arrival & Check-in', type: 'logistics', time: '14:00', duration: '1h', status: 'planned', cost: 0 },
+              { id: 'gen2', title: 'Welcome Dinner at El Cielo', type: 'food', time: '19:00', duration: '2h', status: 'planned', image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80', cost: 150 }
+           ]
+        },
+        {
+           day: 1, 
+           items: [
+              { id: 'gen3', title: 'Comuna 13 Graffiti Tour', type: 'activity', time: '09:00', duration: '3h', status: 'planned', image: 'https://images.unsplash.com/photo-1583531352515-8884af319dc1?q=80', cost: 25 },
+              { id: 'gen4', title: 'Lunch at Pergamino', type: 'food', time: '13:00', duration: '1.5h', status: 'planned', cost: 20 },
+              { id: 'gen5', title: 'Modern Art Museum', type: 'activity', time: '15:30', duration: '2h', status: 'planned', cost: 15 }
+           ]
+        },
+        {
+           day: 2, 
+           items: [
+              { id: 'gen6', title: 'Guatapé Day Trip', type: 'activity', time: '08:00', duration: '8h', status: 'planned', image: 'https://images.unsplash.com/photo-1596395819057-d37e954c7d0d?q=80', cost: 85 }
+           ]
+        }
+     ];
+
+     // Use a different mock if the first one is already present (simple toggle for demo)
+     const hasElCielo = days.some(d => d.items.some(i => i.title.includes('El Cielo')));
+     
+     const MOCK_ITINERARY_B = [
+        {
+            day: 0,
+            items: [
+                { id: 'genB1', title: 'Check-in at Click Clack', type: 'logistics', time: '15:00', duration: '1h', status: 'confirmed' },
+                { id: 'genB2', title: 'Rooftop Drinks at Envy', type: 'food', time: '18:00', duration: '2h', image: 'https://images.unsplash.com/photo-1519671482502-9759101d4561?q=80', cost: 60 }
+            ]
+        },
+        {
+            day: 1,
+            items: [
+                { id: 'genB3', title: 'Botero Plaza Walking Tour', type: 'activity', time: '10:00', duration: '2h', cost: 0 },
+                { id: 'genB4', title: 'Lunch at Mondongos', type: 'food', time: '13:00', duration: '1.5h', cost: 15 },
+                { id: 'genB5', title: 'Metrocable Ride to Arví', type: 'activity', time: '15:00', duration: '3h', image: 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?q=80', cost: 5 }
+            ]
+        }
+     ];
+
+     const itineraryToUse = hasElCielo ? MOCK_ITINERARY_B : MOCK_ITINERARY_A;
+
+     setDays(prev => {
+        // We want to replace or merge? 
+        // For "Auto Generate", let's clear and replace to show the power of the AI, 
+        // but perhaps keep Day 1 if it has "Arrival".
+        // Actually, let's just MERGE into the days, or replace if empty.
+        
+        const newDays = [...prev];
+        
+        itineraryToUse.forEach(mockDay => {
+           if (newDays[mockDay.day]) {
+              // Check if items already exist to avoid dupes (simple title check)
+              const existingTitles = new Set(newDays[mockDay.day].items.map(i => i.title));
+              const newItems = (mockDay.items as TripItem[]).filter(i => !existingTitles.has(i.title));
+              
+              if (newItems.length > 0) {
+                 newDays[mockDay.day] = {
+                    ...newDays[mockDay.day],
+                    items: [...newDays[mockDay.day].items, ...newItems]
+                 };
+              }
+           }
+        });
+        return newDays;
+     });
+     
+     toast.success(hasElCielo ? "AI Concierge: I've suggested an alternative itinerary." : "AI Concierge: I've generated a 3-day plan for you.");
+  };
+
+  const optimizeItinerary = () => {
+    const optimizedDays = optimizeByProximity(days);
+    setDays(optimizedDays);
+    toast.success("AI Concierge: I've optimized your itinerary for proximity.");
+  };
+
+  const autoScheduleDay = (dayIndex: number) => {
+    const scheduledDay = autoScheduleTimes(days[dayIndex]);
+    setDays(prev => {
+      const newDays = [...prev];
+      newDays[dayIndex] = scheduledDay;
+      return newDays;
+    });
+    toast.success(`AI Concierge: I've scheduled Day ${dayIndex + 1} for you.`);
+  };
+
+  const checkConflicts = () => {
+    const detectedConflicts = detectConflicts(days);
+    setConflicts(detectedConflicts);
+    toast.success("AI Concierge: I've checked for conflicts in your itinerary.");
+  };
+
+  const applyTemplate = (templateId: string) => {
+    // Mock template application
+    const template = {
+      day: 0,
+      items: [
+        { id: 'temp1', title: 'Arrival & Check-in', type: 'logistics', time: '14:00', duration: '1h', status: 'planned', cost: 0 },
+        { id: 'temp2', title: 'Welcome Dinner at El Cielo', type: 'food', time: '19:00', duration: '2h', status: 'planned', image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80', cost: 150 }
+      ]
+    };
+
+    setDays(prev => {
+      const newDays = [...prev];
+      newDays[template.day] = {
+        ...newDays[template.day],
+        items: [...newDays[template.day].items, ...template.items]
+      };
+      return newDays;
+    });
+    toast.success("AI Concierge: I've applied a template to your itinerary.");
   };
 
   return (
     <TripDetailsContext.Provider value={{
-      days, activePanel, isChatOpen,
-      setActivePanel, toggleChat, addItemToDay, moveItem
+      days, activePanel, isChatOpen, conflicts, recommendations,
+      setActivePanel, toggleChat, addItemToDay, moveItem, autoGenerateTrip,
+      optimizeItinerary, autoScheduleDay, checkConflicts, applyTemplate
     }}>
       {children}
     </TripDetailsContext.Provider>

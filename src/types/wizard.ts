@@ -97,7 +97,9 @@ export type AIActionType =
   | 'NAVIGATE_TO_STEP' 
   | 'TOGGLE_VIEW_MODE'
   | 'SELECT_RESULT'
-  | 'OPEN_CREATE_TRIP';
+  | 'OPEN_CREATE_TRIP'
+  | 'ADD_TO_ITINERARY'
+  | 'AUTO_GENERATE_ITINERARY';
 
 export interface AIEvent {
   type: AIActionType;

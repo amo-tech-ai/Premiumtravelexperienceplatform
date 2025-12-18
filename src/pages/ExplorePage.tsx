@@ -5,7 +5,6 @@ import { PlaceCard } from '../components/explore/PlaceCard';
 import { ExploreMap } from '../components/explore/ExploreMap';
 import { ExploreFilters } from '../components/explore/ExploreFilters';
 import { PlaceDetailDrawer } from '../components/explore/PlaceDetailDrawer';
-import { Sidebar } from '../components/layout/Sidebar';
 import { Button } from '../components/ui/button';
 import { useAI } from '../context/AIContext';
 import { useTrip } from '../context/TripContext';
@@ -275,10 +274,7 @@ export default function ExplorePage() {
   return (
     <div className="flex h-screen overflow-hidden bg-white">
       
-      {/* 1. LEFT SIDEBAR */}
-      <Sidebar className="hidden md:flex flex-shrink-0 z-20" />
-
-      {/* 2. CENTER CONTENT FEED */}
+      {/* CENTER CONTENT FEED - Sidebar now provided by AppShell */}
       <div className="flex-1 flex flex-col h-full bg-white relative z-10 w-full min-w-0">
         
         {/* Mobile Header (replaces sidebar on mobile) */}

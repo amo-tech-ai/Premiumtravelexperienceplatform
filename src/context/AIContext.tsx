@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AIEvent } from '../types/wizard';
 
 export type AIIntent = 'GENERAL' | 'REAL_ESTATE' | 'EVENTS' | 'ITINERARY' | 'DINING' | 'STAYS' | 'TOURIST' | 'LOCATIONS' | 'GUIDES' | 'DISCOVERY';
 
@@ -118,7 +119,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     
     const realEstateKeywords = ['buy', 'rent', 'invest', 'condo', 'apartment', 'house', 'property', 'roi', 'yield', 'real estate'];
     const eventKeywords = ['party', 'event', 'music', 'dance', 'dinner', 'restaurant', 'club', 'nightlife', 'concert', 'food'];
-    const itineraryKeywords = ['plan', 'trip', 'schedule', 'itinerary', 'day', 'week'];
+    const itineraryKeywords = ['plan', 'trip', 'schedule', 'itinerary', 'day', 'week', 'add to day'];
 
     if (realEstateKeywords.some(k => lowerText.includes(k))) return 'REAL_ESTATE';
     if (eventKeywords.some(k => lowerText.includes(k))) return 'EVENTS';
@@ -177,48 +178,86 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
       const lowerText = text.toLowerCase();
       
       // -- Simple NL Parsing for Actions --
-      const newActions: any[] = [];
+      const newActions: AIEvent[] = [];
 
-      // Budget parsing: "under 500", "budget 200"
-      const budgetMatch = lowerText.match(/(?:under|budget|max|limit)\s?\$?(\d+)/);
-      if (budgetMatch) {
-          const max = parseInt(budgetMatch[1]);
+      // Itinerary Parsing: "Add lunch to Day 1"
+      if (lowerText.includes('add') && lowerText.includes('day')) {
+          const dayMatch = lowerText.match(/day\s?(\d+)/);
+          const dayIndex = dayMatch ? parseInt(dayMatch[1]) - 1 : 0;
+          
+          let title = "New Item";
+          let type = "activity";
+
+          if (lowerText.includes('lunch') || lowerText.includes('dinner') || lowerText.includes('breakfast')) {
+              type = "food";
+              title = lowerText.includes('lunch') ? "Lunch" : lowerText.includes('dinner') ? "Dinner" : "Breakfast";
+          } else if (lowerText.includes('tour') || lowerText.includes('visit')) {
+              type = "activity";
+              title = "New Tour";
+          }
+
+          // Extract title if possible (very basic)
+          // e.g. "Add Comuna 13 to Day 1" -> "Comuna 13"
+          if (lowerText.includes('add ')) {
+             const parts = lowerText.split(' to day');
+             if (parts.length > 0) {
+                 const what = parts[0].replace('add ', '').trim();
+                 if (what.length > 2) title = what.charAt(0).toUpperCase() + what.slice(1);
+             }
+          }
+
           newActions.push({
-              type: 'UPDATE_FILTERS',
-              payload: { budget: { min: 0, max, currency: 'USD' } },
+              type: 'ADD_TO_ITINERARY',
+              payload: { dayIndex: Math.max(0, dayIndex), item: { title, type, time: 'TBD' } },
               timestamp: Date.now()
           });
-      }
 
-      // Guest parsing: "for 2", "table for 4", "party of 3"
-      const guestMatch = lowerText.match(/(?:for|of)\s(\d+)/);
-      if (guestMatch) {
-          const guests = parseInt(guestMatch[1]);
+          aiResponseContent = `I've added "${title}" to Day ${dayIndex + 1} of your itinerary.`;
+      }
+      // Auto-Generate
+      else if (lowerText.includes('generate') || lowerText.includes('build my trip')) {
           newActions.push({
-              type: 'UPDATE_FILTERS',
-              payload: { guests },
+              type: 'AUTO_GENERATE_ITINERARY',
+              payload: {},
               timestamp: Date.now()
           });
+          aiResponseContent = "I'm generating a custom itinerary for you based on your preferences...";
       }
+      else {
+        // ... existing parsers ...
 
-      // Tag parsing
-      const keywords = ['romantic', 'rooftop', 'outdoor', 'vegan', 'sushi', 'italian', 'live music'];
-      const foundTags = keywords.filter(k => lowerText.includes(k));
-      if (foundTags.length > 0) {
-           // We need to fetch current tags first? No, we can just append or set.
-           // Since we don't have access to WizardContext here, we'll send a partial update
-           // The bridge will handle merging if needed, or we just overwrite. 
-           // Better to send what we found.
-           // Let's assume the payload replaces or merges in WizardContext. 
-           // Actually WizardContext.updateFilters merges top-level keys. 
-           // So providing 'tags' will overwrite tags. 
-           // Limitation: We can't easily "append" without reading state. 
-           // For this demo, overwriting with found tags + preserving intent is okay-ish.
-           newActions.push({
-              type: 'UPDATE_FILTERS',
-              payload: { tags: foundTags },
-              timestamp: Date.now()
-           });
+        // Budget parsing: "under 500", "budget 200"
+        const budgetMatch = lowerText.match(/(?:under|budget|max|limit)\s?\$?(\d+)/);
+        if (budgetMatch) {
+            const max = parseInt(budgetMatch[1]);
+            newActions.push({
+                type: 'UPDATE_FILTERS',
+                payload: { budget: { min: 0, max, currency: 'USD' } },
+                timestamp: Date.now()
+            });
+        }
+
+        // Guest parsing: "for 2", "table for 4", "party of 3"
+        const guestMatch = lowerText.match(/(?:for|of)\s(\d+)/);
+        if (guestMatch) {
+            const guests = parseInt(guestMatch[1]);
+            newActions.push({
+                type: 'UPDATE_FILTERS',
+                payload: { guests },
+                timestamp: Date.now()
+            });
+        }
+
+        // Tag parsing
+        const keywords = ['romantic', 'rooftop', 'outdoor', 'vegan', 'sushi', 'italian', 'live music'];
+        const foundTags = keywords.filter(k => lowerText.includes(k));
+        if (foundTags.length > 0) {
+            newActions.push({
+                type: 'UPDATE_FILTERS',
+                payload: { tags: foundTags },
+                timestamp: Date.now()
+            });
+        }
       }
 
       if (newActions.length > 0) {
@@ -226,41 +265,44 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
           setLastAction(newActions[newActions.length - 1]);
       }
       
-      switch (newIntent) {
-        case 'REAL_ESTATE':
-          if (lowerText.includes('penthouse') || lowerText.includes('luxury')) {
-              aiResponseContent = "I've filtered for our exclusive penthouse collection in El Poblado. These properties offer the best views in the city.";
-          } else if (lowerText.includes('invest') || lowerText.includes('roi')) {
-              aiResponseContent = "Excellent choice. Medellín's property market is booming. I'm showing you properties with high short-term rental potential.";
-          } else {
-              aiResponseContent = "I've switched to Real Estate mode. Here are some high-yield properties in El Poblado that match your criteria.";
+      // Response Generation (if not already set by Itinerary logic)
+      if (!aiResponseContent) {
+          switch (newIntent) {
+            case 'REAL_ESTATE':
+            if (lowerText.includes('penthouse') || lowerText.includes('luxury')) {
+                aiResponseContent = "I've filtered for our exclusive penthouse collection in El Poblado. These properties offer the best views in the city.";
+            } else if (lowerText.includes('invest') || lowerText.includes('roi')) {
+                aiResponseContent = "Excellent choice. Medellín's property market is booming. I'm showing you properties with high short-term rental potential.";
+            } else {
+                aiResponseContent = "I've switched to Real Estate mode. Here are some high-yield properties in El Poblado that match your criteria.";
+            }
+            break;
+            case 'EVENTS':
+            case 'DINING':
+            if (lowerText.includes('salsa') || lowerText.includes('dance')) {
+                aiResponseContent = "You can't come to Medellín without dancing! I've highlighted the best salsa clubs for tonight.";
+            } else if (lowerText.includes('dinner') || lowerText.includes('food')) {
+                aiResponseContent = "I know some hidden gems for gastronomy. Let's look at the best tables in town.";
+            } else {
+                aiResponseContent = "I've found some exclusive spots for you. Switching to Discovery mode.";
+            }
+            break;
+            case 'ITINERARY':
+            if (lowerText.includes('days') || lowerText.includes('week')) {
+                aiResponseContent = "Perfect. I can help you plan day-by-day. Let's start the Itinerary Wizard to customize your trip.";
+            } else {
+                aiResponseContent = "Let's plan your trip. I can customize an itinerary based on your preferences.";
+            }
+            break;
+            case 'TOURIST':
+                aiResponseContent = "Opening the map. You can filter by 'Real Estate', 'Dining', or 'Culture' to see what's around you.";
+                break;
+            case 'DISCOVERY':
+                aiResponseContent = "I've updated your dashboard with new recommendations based on your request. Let me know if you'd like to book any of them.";
+                break;
+            default:
+            aiResponseContent = "I can help you with that. Would you like to see events, properties, or plan a trip?";
           }
-          break;
-        case 'EVENTS':
-        case 'DINING':
-          if (lowerText.includes('salsa') || lowerText.includes('dance')) {
-              aiResponseContent = "You can't come to Medellín without dancing! I've highlighted the best salsa clubs for tonight.";
-          } else if (lowerText.includes('dinner') || lowerText.includes('food')) {
-              aiResponseContent = "I know some hidden gems for gastronomy. Let's look at the best tables in town.";
-          } else {
-              aiResponseContent = "I've found some exclusive spots for you. Switching to Discovery mode.";
-          }
-          break;
-        case 'ITINERARY':
-          if (lowerText.includes('days') || lowerText.includes('week')) {
-               aiResponseContent = "Perfect. I can help you plan day-by-day. Let's start the Itinerary Wizard to customize your trip.";
-          } else {
-               aiResponseContent = "Let's plan your trip. I can customize an itinerary based on your preferences.";
-          }
-          break;
-        case 'TOURIST':
-             aiResponseContent = "Opening the map. You can filter by 'Real Estate', 'Dining', or 'Culture' to see what's around you.";
-             break;
-        case 'DISCOVERY':
-             aiResponseContent = "I've updated your dashboard with new recommendations based on your request. Let me know if you'd like to book any of them.";
-             break;
-        default:
-          aiResponseContent = "I can help you with that. Would you like to see events, properties, or plan a trip?";
       }
 
       setMessages(prev => [...prev, {
@@ -296,7 +338,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AIContext.Provider value={{ messages, intent, savedItems, isTyping, isOpen, toggleOpen, sendMessage, injectMessage, setIntent, resetChat, saveItem, removeItem }}>
+    <AIContext.Provider value={{ messages, intent, savedItems, isTyping, isOpen, toggleOpen, sendMessage, injectMessage, setIntent, resetChat, saveItem, removeItem, lastAction }}>
       {children}
     </AIContext.Provider>
   );

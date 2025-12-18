@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Sidebar } from '../../components/layout/Sidebar';
 import { PlaceCard } from '../../components/explore/PlaceCard';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -59,10 +58,7 @@ export default function SavedPlacesPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-white">
-      {/* 1. LEFT SIDEBAR */}
-      <Sidebar className="hidden md:flex flex-shrink-0 z-20" />
-
-      {/* 2. CENTER CONTENT */}
+      {/* CENTER CONTENT - Sidebar now provided by AppShell */}
       <div className="flex-1 flex flex-col h-full bg-slate-50 relative z-10 overflow-y-auto">
         <div className="max-w-7xl mx-auto w-full px-6 py-8 md:px-12 md:py-12">
           
