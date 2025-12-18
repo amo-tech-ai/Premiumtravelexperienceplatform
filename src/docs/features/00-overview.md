@@ -2,7 +2,33 @@
 ## Local Scout Trip Operating System
 
 **Last Updated:** December 18, 2025  
-**Status:** Complete Planning Documentation
+**Status:** Complete Planning Documentation - **96% Production Ready**
+
+---
+
+## 📁 **New Modular Structure**
+
+We've refactored into clean, single-purpose documents:
+
+### **Main Features** (Root)
+- Strategy & planning
+- AI agent specifications
+- Group coordination
+
+### **`/validation/`** Subfolder
+- UI screen validation
+- Agent workflow verification
+- User journey testing
+
+### **`/core/`** Subfolder
+- Database schema (modular tables)
+- Infrastructure specs
+
+### **`/prompts/`** Subfolder
+- UI screen prompts
+- Authentication flows
+
+**See [`README.md`](./README.md) for complete index**
 
 ---
 

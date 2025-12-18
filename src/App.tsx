@@ -1,103 +1,187 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import Home from './pages/Home';
-import MedellinExperiencesPage from './pages/MedellinExperiences';
-import ExperienceDetailPage from './pages/ExperienceDetail';
-import Explorer from './pages/Explorer';
-import Concierge from './pages/Concierge';
-import RealEstateHome from './pages/real-estate/RealEstateHome';
-import PropertySearch from './pages/real-estate/PropertySearch';
-import PropertyDetail from './pages/real-estate/PropertyDetail';
-import MarketInsights from './pages/real-estate/MarketInsights';
-import ItineraryWizard from './pages/ItineraryWizard';
-import NotFound from './pages/NotFound';
-import Results from './pages/Results';
-import WizardFlow from './pages/WizardFlow';
-import { AIProvider } from './context/AIContext';
-import { WizardProvider } from './context/WizardContext';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { TripProvider } from './context/TripContext';
-import { AIWizardBridge } from './components/ai/AIWizardBridge';
+import { AuthProvider } from './context/AuthContext';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
-import { AppShell } from './components/layout/AppShell';
+// Auth Screens
+import { LandingPage } from './pages/LandingPage';
+import { SignupPage } from './pages/auth/SignupPage';
+import { LoginPage } from './pages/auth/LoginPage';
 
-import RestaurantDetailPage from './pages/RestaurantDetail';
-import EventDetailPage from './pages/EventDetail';
-import StyleGuidePage from './pages/StyleGuide';
-import ArchitecturePage from './pages/Architecture'; // Internal Docs
-import HowItWorksPage from './pages/HowItWorks'; // Public Page
-import Dashboard from './pages/Dashboard';
-import TripDiscoveryDashboard from './pages/TripDiscoveryDashboard';
-import ExplorePage from './pages/ExplorePage';
-import SavedPlacesPage from './pages/saved/SavedPlacesPage';
-import TripDetailsPage from './pages/trip/TripDetailsPage';
-import ChatsPage from './pages/ChatsPage';
+// Trip Screens
+import { TripDashboard } from './pages/trip/TripDashboard';
+import { TripWizard } from './pages/trip/TripWizard';
+import { TimelineView } from './pages/trip/TimelineView';
 
-// ScrollToTop component
-const ScrollToTop = () => {
-  const { pathname } = useLocation();
+// Feature Screens - Dining
+import { DiningHub } from './pages/dining/DiningHub';
+import { RestaurantDetail } from './pages/dining/RestaurantDetail';
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+// Feature Screens - Optimizer
+import { OptimizerDashboard } from './pages/optimizer/OptimizerDashboard';
 
-  return null;
-};
+// Feature Screens - Bookings
+import { BookingsHub } from './pages/bookings/BookingsHub';
 
-function App() {
+// Feature Screens - Events
+import { EventsHub } from './pages/events/EventsHub';
+import { EventDetail } from './pages/events/EventDetail';
+
+// Feature Screens - Insider
+import { InsiderFeed } from './pages/insider/InsiderFeed';
+import { InsiderPlaceDetail } from './pages/insider/InsiderPlaceDetail';
+
+// Feature Screens - Budget
+import { BudgetDashboard } from './pages/budget/BudgetDashboard';
+
+// Account Screens
+import { AccountSettings } from './pages/account/AccountSettings';
+
+/**
+ * Main Application Component
+ * Implements routing and global providers for Trip Operating System
+ */
+export default function App() {
   return (
     <Router>
-      <AIProvider>
+      <AuthProvider>
         <TripProvider>
-          <WizardProvider>
-            <ScrollToTop />
-            <AppShell>
           <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/experiences/medellin" element={<MedellinExperiencesPage />} />
-              <Route path="/map" element={<Explorer />} />
-              <Route path="/concierge" element={<Concierge />} />
-              <Route path="/wizard/:category" element={<WizardFlow />} />
-              <Route path="/results" element={<Results />} />
-              <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
-            <Route path="/experiences/:id" element={<EventDetailPage />} />
-            <Route path="/experiences/medellin/la-deriva" element={<ExperienceDetailPage />} />
-            
-            {/* Real Estate Routes */}
-            <Route path="/real-estate" element={<RealEstateHome />} />
-            <Route path="/real-estate/search" element={<PropertySearch />} />
-            <Route path="/real-estate/listing/:id" element={<PropertyDetail />} />
-            <Route path="/real-estate/market-data" element={<MarketInsights />} />
-            
-            {/* Itinerary Route */}
-            <Route path="/itinerary" element={<ItineraryWizard />} />
-            <Route path="/itinerary/new" element={<ItineraryWizard />} />
-            
-            {/* Design System & Info */}
-            <Route path="/style-guide" element={<StyleGuidePage />} />
-            <Route path="/architecture" element={<ArchitecturePage />} />
-            <Route path="/how-it-works" element={<HowItWorksPage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/login" element={<LoginPage />} />
 
-            {/* New Routes Alias */}
-            <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/chats" element={<ChatsPage />} />
-            <Route path="/itineraries" element={<Dashboard />} />
-            <Route path="/events" element={<ExplorePage />} />
-            <Route path="/saved" element={<SavedPlacesPage />} />
-            <Route path="/collections" element={<SavedPlacesPage />} />
-            <Route path="/trip/:id" element={<TripDetailsPage />} />
-            <Route path="/profile" element={<Dashboard />} />
+            {/* Protected Routes - Trip Creation */}
+            <Route
+              path="/trip/new"
+              element={
+                <ProtectedRoute>
+                  <TripWizard />
+                </ProtectedRoute>
+              }
+            />
 
-            {/* 404 Route */}
-            <Route path="*" element={<NotFound />} />
+            {/* Protected Routes - Trip Dashboard */}
+            <Route
+              path="/trip/:tripId"
+              element={
+                <ProtectedRoute>
+                  <TripDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Routes - Timeline */}
+            <Route
+              path="/trip/:tripId/timeline"
+              element={
+                <ProtectedRoute>
+                  <TimelineView />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Routes - Dining Agent */}
+            <Route
+              path="/trip/:tripId/dining"
+              element={
+                <ProtectedRoute>
+                  <DiningHub />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/trip/:tripId/dining/:placeId"
+              element={
+                <ProtectedRoute>
+                  <RestaurantDetail />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Routes - Optimizer Agent */}
+            <Route
+              path="/trip/:tripId/optimizer"
+              element={
+                <ProtectedRoute>
+                  <OptimizerDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Routes - Booking Agent */}
+            <Route
+              path="/trip/:tripId/bookings"
+              element={
+                <ProtectedRoute>
+                  <BookingsHub />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Routes - Event Curator */}
+            <Route
+              path="/trip/:tripId/events"
+              element={
+                <ProtectedRoute>
+                  <EventsHub />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/trip/:tripId/events/:eventId"
+              element={
+                <ProtectedRoute>
+                  <EventDetail />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Routes - Local Insider */}
+            <Route
+              path="/trip/:tripId/insider"
+              element={
+                <ProtectedRoute>
+                  <InsiderFeed />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/trip/:tripId/insider/:placeId"
+              element={
+                <ProtectedRoute>
+                  <InsiderPlaceDetail />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Routes - Budget Guardian */}
+            <Route
+              path="/trip/:tripId/budget"
+              element={
+                <ProtectedRoute>
+                  <BudgetDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Routes - Account */}
+            <Route
+              path="/account"
+              element={
+                <ProtectedRoute>
+                  <AccountSettings />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Fallback Route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-          <AIWizardBridge />
-        </AppShell>
-        </WizardProvider>
-      </TripProvider>
-      </AIProvider>
+        </TripProvider>
+      </AuthProvider>
     </Router>
   );
 }
-
-export default App;
