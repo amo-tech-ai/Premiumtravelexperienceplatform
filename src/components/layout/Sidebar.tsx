@@ -1,9 +1,11 @@
 import React from 'react';
-import { MessageSquare, Briefcase, Compass, Heart, Bell, Zap, PlusSquare, Menu, LogOut } from 'lucide-react';
+import { MessageSquare, Briefcase, Compass, Heart, Bell, Zap, PlusSquare, Menu, LogOut, Sparkles } from 'lucide-react';
 import { cn } from '../ui/utils';
 import { Button } from '../ui/button';
 import { motion } from 'motion/react';
 import { useWizard } from '../../context/WizardContext';
+
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface SidebarProps {
   className?: string;
@@ -11,20 +13,21 @@ interface SidebarProps {
 
 export function Sidebar({ className }: SidebarProps) {
   const { openCreateTrip } = useWizard();
+  const navigate = useNavigate();
+  const location = useLocation();
   
   const navItems = [
-    { icon: MessageSquare, label: 'Chats', count: 2 },
-    { icon: Briefcase, label: 'Trips' },
-    { icon: Compass, label: 'Explore', active: true },
-    { icon: Heart, label: 'Saved' },
-    { icon: Bell, label: 'Updates', badge: 3 },
-    { icon: Zap, label: 'Inspiration' },
+    { icon: MessageSquare, label: 'Chats', path: '/chats', count: 2 },
+    { icon: Briefcase, label: 'Trips', path: '/itineraries' },
+    { icon: Compass, label: 'Explore', path: '/explore' },
+    { icon: Heart, label: 'Saved', path: '/saved' },
+    { icon: Sparkles, label: 'Concierge', path: '/concierge' },
   ];
 
   return (
     <div className={cn("flex flex-col h-full bg-white border-r border-slate-100 py-6 w-[240px] hidden md:flex", className)}>
       {/* Logo Area */}
-      <div className="px-6 mb-8 flex items-center gap-2">
+      <div className="px-6 mb-8 flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
         <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -37,35 +40,39 @@ export function Sidebar({ className }: SidebarProps) {
 
       {/* Nav Items */}
       <nav className="flex-1 space-y-1 px-3">
-        {navItems.map((item) => (
-          <button
-            key={item.label}
-            className={cn(
-              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
-              item.active 
-                ? "bg-slate-50 text-slate-900" 
-                : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-            )}
-          >
-            <item.icon className={cn(
-              "w-5 h-5 transition-colors",
-              item.active ? "text-slate-900" : "text-slate-400 group-hover:text-slate-600"
-            )} />
-            <span>{item.label}</span>
-            
-            {/* Badges/Counts */}
-            {item.count && (
-              <span className="ml-auto bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px] font-bold">
-                {item.count}
-              </span>
-            )}
-            {item.badge && (
-              <span className="ml-auto bg-rose-500 text-white px-1.5 py-0.5 rounded-full text-[10px] font-bold min-w-[18px] flex items-center justify-center">
-                {item.badge}
-              </span>
-            )}
-          </button>
-        ))}
+        {navItems.map((item) => {
+          const isActive = location.pathname.startsWith(item.path);
+          return (
+            <button
+              key={item.label}
+              onClick={() => navigate(item.path)}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
+                isActive 
+                  ? "bg-slate-50 text-slate-900" 
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+              )}
+            >
+              <item.icon className={cn(
+                "w-5 h-5 transition-colors",
+                isActive ? "text-slate-900" : "text-slate-400 group-hover:text-slate-600"
+              )} />
+              <span>{item.label}</span>
+              
+              {/* Badges/Counts */}
+              {item.count && (
+                <span className="ml-auto bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                  {item.count}
+                </span>
+              )}
+              {item.badge && (
+                <span className="ml-auto bg-rose-500 text-white px-1.5 py-0.5 rounded-full text-[10px] font-bold min-w-[18px] flex items-center justify-center">
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
 
         <div className="pt-4 mt-4 border-t border-slate-100">
            <button 

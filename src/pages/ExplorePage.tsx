@@ -8,6 +8,7 @@ import { PlaceDetailDrawer } from '../components/explore/PlaceDetailDrawer';
 import { Sidebar } from '../components/layout/Sidebar';
 import { Button } from '../components/ui/button';
 import { useAI } from '../context/AIContext';
+import { useTrip } from '../context/TripContext';
 import { cn } from '../components/ui/utils';
 
 // --- Mock Data ---
@@ -161,6 +162,7 @@ const PLACES = [
 
 export default function ExplorePage() {
   const { savedItems, saveItem, removeItem, injectMessage, toggleOpen } = useAI();
+  const { addToTrip } = useTrip();
   const [activeFilter, setActiveFilter] = useState('For You');
   const [searchQuery, setSearchQuery] = useState('');
   const [activePlaceId, setActivePlaceId] = useState<string | null>(null);
@@ -193,9 +195,9 @@ export default function ExplorePage() {
 
   const handleAdd = (e: React.MouseEvent | null, place: any) => {
      e?.stopPropagation();
-     // Add to itinerary logic (mock)
-     injectMessage(`I'd like to add ${place.title} to my itinerary.`, 'user', 'ITINERARY');
-     toggleOpen();
+     // Add to Active Trip Context
+     const type = place.category === 'Stays' ? 'stay' : place.category === 'Restaurants' ? 'event' : 'experience';
+     addToTrip(place, type);
   };
 
   const handleAskAI = (place: any) => {

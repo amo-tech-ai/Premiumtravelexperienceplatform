@@ -168,7 +168,7 @@ const BudgetSelect = ({ selected, onChange, onClose }: any) => {
 
 export function TripCreateModal() {
   const { ui, closeCreateTrip } = useWizard();
-  const { injectMessage } = useAI();
+  const { injectMessage, saveItem } = useAI();
   const navigate = useNavigate();
   const [activeField, setActiveField] = useState<string | null>(null);
   
@@ -193,28 +193,31 @@ export function TripCreateModal() {
       if (budget.includes('$$$')) budgetVal = 3000;
       if (budget.includes('$$$$')) budgetVal = 5000;
 
-      // 2. Mock Dates (In a real app, DateSelect would pass actual Date objects)
-      const mockDateRange = {
-          from: new Date(),
-          to: addDays(new Date(), 5)
-      };
+      // 2. Generate Trip ID
+      const newTripId = `trip-${Date.now()}`;
 
-      // 3. Close Modal
-      closeCreateTrip();
-
-      // 4. Inject "Thought" into AI Context
-      injectMessage(`I'm planning a trip to ${location} for ${travelers} people. Budget: ${budget}.`, 'user', 'ITINERARY');
-
-      // 5. Navigate to Itinerary Wizard (skip to results)
-      navigate('/itinerary', { 
-          state: {
+      // 3. Save to AI Context (Global Store)
+      saveItem({
+          id: newTripId,
+          type: 'itinerary',
+          title: `Trip to ${location || "Medellín"}`,
+          date: dates,
+          image: "https://images.unsplash.com/photo-1599582106603-946654a9388c?auto=format&fit=crop&q=80",
+          data: {
               budget: budgetVal,
-              dateRange: mockDateRange,
-              step: 4, // Jump to Result View
-              interests: ['culture', 'food', 'nature'], // Default interests for "Pereira" / "Medellin"
-              locationName: location || "Medellín"
+              travelers: travelers,
+              location: location || "Medellín"
           }
       });
+
+      // 4. Close Modal
+      closeCreateTrip();
+
+      // 5. Inject "Thought" into AI Context
+      injectMessage(`I've created a new trip to ${location} for ${travelers} people.`, 'user', 'ITINERARY');
+
+      // 6. Navigate to Trip Details
+      navigate(`/trip/${newTripId}`);
   };
 
   return (

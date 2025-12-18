@@ -29,6 +29,9 @@ import HowItWorksPage from './pages/HowItWorks'; // Public Page
 import Dashboard from './pages/Dashboard';
 import TripDiscoveryDashboard from './pages/TripDiscoveryDashboard';
 import ExplorePage from './pages/ExplorePage';
+import SavedPlacesPage from './pages/saved/SavedPlacesPage';
+import TripDetailsPage from './pages/trip/TripDetailsPage';
+import ChatsPage from './pages/ChatsPage';
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -78,11 +81,12 @@ function App() {
 
             {/* New Routes Alias */}
             <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/ai" element={<Concierge />} />
+            <Route path="/chats" element={<ChatsPage />} />
             <Route path="/itineraries" element={<Dashboard />} />
             <Route path="/events" element={<ExplorePage />} />
-            <Route path="/collections" element={<ExplorePage />} />
-            <Route path="/trip/:id" element={<TripDiscoveryDashboard />} />
+            <Route path="/saved" element={<SavedPlacesPage />} />
+            <Route path="/collections" element={<SavedPlacesPage />} />
+            <Route path="/trip/:id" element={<TripDetailsPage />} />
             <Route path="/profile" element={<Dashboard />} />
 
             {/* 404 Route */}
