@@ -6,6 +6,7 @@ import { cn } from "../ui/utils";
 import { ConciergeFab } from "../ai/ConciergeFab";
 import { ConciergeOverlay } from "../ai/ConciergeOverlay";
 import { TripCreateModal } from "../trip-wizard/TripCreateModal";
+import { Toaster } from "../ui/sonner";
 
 interface AppShellProps {
   children: ReactNode;
@@ -26,6 +27,7 @@ export function AppShell({ children, className }: AppShellProps) {
       <ConciergeOverlay />
       <TripCreateModal />
       <BottomNav />
+      <Toaster />
     </div>
   );
 }

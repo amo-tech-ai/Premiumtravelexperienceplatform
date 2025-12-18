@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock, Map, Check } from 'lucide-react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { Button } from '../ui/button';
+import { cn } from '../ui/utils';
 
 export interface Experience {
   id: string;
@@ -16,9 +17,10 @@ interface ExperienceCardListProps {
   onAdd: (exp: Experience) => void;
   onHover?: (id: string) => void;
   onLeave?: () => void;
+  savedIds?: string[];
 }
 
-export function ExperienceCardList({ experiences, onAdd, onHover, onLeave }: ExperienceCardListProps) {
+export function ExperienceCardList({ experiences, onAdd, onHover, onLeave, savedIds = [] }: ExperienceCardListProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between px-1">
@@ -67,14 +69,23 @@ export function ExperienceCardList({ experiences, onAdd, onHover, onLeave }: Exp
             </div>
 
             {/* Action */}
-            <div className="flex items-center pr-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className={cn(
+                "flex items-center pr-2 transition-opacity",
+                savedIds.includes(exp.id) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            )}>
                 <Button 
                    onClick={() => onAdd(exp)}
+                   disabled={savedIds.includes(exp.id)}
                    size="sm" 
-                   variant="outline" 
-                   className="h-8 text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-900"
+                   variant={savedIds.includes(exp.id) ? "default" : "outline"}
+                   className={cn(
+                       "h-8 text-xs",
+                       savedIds.includes(exp.id) 
+                         ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-transparent"
+                         : "border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-900"
+                   )}
                 >
-                    Add
+                    {savedIds.includes(exp.id) ? 'Added' : 'Add'}
                 </Button>
             </div>
           </div>

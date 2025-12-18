@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Ticket, Plus } from 'lucide-react';
+import { Calendar, Ticket, Plus, Check } from 'lucide-react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { cn } from '../ui/utils';
 import { Button } from '../ui/button';
@@ -19,11 +19,12 @@ interface EventCardListProps {
   onAdd: (event: Event) => void;
   onHover?: (id: string | null) => void;
   activeId?: string | null;
+  savedIds?: string[];
   className?: string;
   itemRefs?: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
 }
 
-export function EventCardList({ events, onAdd, onHover, activeId, className, itemRefs }: EventCardListProps) {
+export function EventCardList({ events, onAdd, onHover, activeId, savedIds = [], className, itemRefs }: EventCardListProps) {
   return (
     <div className={cn("space-y-4", className)}>
       <div className="flex items-center justify-between px-1">
@@ -84,10 +85,25 @@ export function EventCardList({ events, onAdd, onHover, activeId, className, ite
                   </span>
                   <button 
                     onClick={() => onAdd(event)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-100 transition-colors"
+                    disabled={savedIds.includes(event.id)}
+                    className={cn(
+                        "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors",
+                        savedIds.includes(event.id) 
+                            ? "bg-emerald-100 text-emerald-800 cursor-default"
+                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                    )}
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    Add
+                    {savedIds.includes(event.id) ? (
+                        <>
+                            <Check className="w-3.5 h-3.5" />
+                            Added
+                        </>
+                    ) : (
+                        <>
+                            <Plus className="w-3.5 h-3.5" />
+                            Add
+                        </>
+                    )}
                   </button>
                </div>
             </div>

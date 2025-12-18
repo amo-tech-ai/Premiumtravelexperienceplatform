@@ -15,6 +15,7 @@ import Results from './pages/Results';
 import WizardFlow from './pages/WizardFlow';
 import { AIProvider } from './context/AIContext';
 import { WizardProvider } from './context/WizardContext';
+import { TripProvider } from './context/TripContext';
 import { ChatOverlay } from './components/wizard/ChatOverlay';
 import { AIWizardBridge } from './components/ai/AIWizardBridge';
 
@@ -44,9 +45,10 @@ function App() {
   return (
     <Router>
       <AIProvider>
-        <WizardProvider>
-          <ScrollToTop />
-          <AppShell>
+        <TripProvider>
+          <WizardProvider>
+            <ScrollToTop />
+            <AppShell>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/experiences/medellin" element={<MedellinExperiencesPage />} />
@@ -90,6 +92,7 @@ function App() {
           <AIWizardBridge />
         </AppShell>
         </WizardProvider>
+      </TripProvider>
       </AIProvider>
     </Router>
   );

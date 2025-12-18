@@ -19,9 +19,10 @@ interface StayRecommendationListProps {
   onAdd: (stay: Stay) => void;
   onHover?: (id: string) => void;
   onLeave?: () => void;
+  savedIds?: string[];
 }
 
-export function StayRecommendationList({ stays, onAdd, onHover, onLeave }: StayRecommendationListProps) {
+export function StayRecommendationList({ stays, onAdd, onHover, onLeave, savedIds = [] }: StayRecommendationListProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between px-1">
@@ -62,9 +63,15 @@ export function StayRecommendationList({ stays, onAdd, onHover, onLeave }: StayR
 
                <button 
                   onClick={(e) => { e.stopPropagation(); onAdd(stay); }}
-                  className="absolute bottom-3 right-3 bg-white text-emerald-900 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+                  disabled={savedIds.includes(stay.id)}
+                  className={cn(
+                      "absolute bottom-3 right-3 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all duration-300 transform",
+                      savedIds.includes(stay.id)
+                        ? "bg-emerald-900 text-white opacity-100 translate-y-0"
+                        : "bg-white text-emerald-900 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
+                  )}
                >
-                  Select Property
+                  {savedIds.includes(stay.id) ? 'Selected' : 'Select Property'}
                </button>
             </div>
 

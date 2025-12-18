@@ -1,164 +1,43 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ConciergePromptBar } from '../components/trip-discovery/ConciergePromptBar';
-import { EventCardList, Event } from '../components/trip-discovery/EventCardList';
-import { StayRecommendationList, Stay } from '../components/trip-discovery/StayRecommendationList';
-import { ExperienceCardList, Experience } from '../components/trip-discovery/ExperienceCardList';
+import { EventCardList } from '../components/trip-discovery/EventCardList';
+import { StayRecommendationList } from '../components/trip-discovery/StayRecommendationList';
+import { ExperienceCardList } from '../components/trip-discovery/ExperienceCardList';
 import { SmartMapView } from '../components/trip-discovery/SmartMapView';
+import { TripSummarySheet } from '../components/trip-discovery/TripSummarySheet';
 import { toast } from 'sonner@2.0.3';
 import { useAI } from '../context/AIContext';
+import { useTrip } from '../context/TripContext';
 import { Drawer, DrawerContent, DrawerTrigger } from '../components/ui/drawer';
 import { Button } from '../components/ui/button';
 import { Map } from 'lucide-react';
 
-// Mock Data (Moved outside component to be initial state)
-const INITIAL_EVENTS: Event[] = [
-  {
-    id: 'e1',
-    title: 'Medellín Flower Festival Parade',
-    image: 'https://images.unsplash.com/photo-1596707328607-28d15a97573d?q=80&w=800&auto=format&fit=crop',
-    date: 'This week',
-    popularity: 'Almost sold out',
-    price: '$25',
-    location: 'Avenida Guayabal'
-  },
-  {
-    id: 'e2',
-    title: 'Karol G: Mañana Será Bonito Fest',
-    image: 'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=800&auto=format&fit=crop',
-    date: 'Fri, Dec 22',
-    popularity: 'Selling fast',
-    price: '$80',
-    location: 'Atanasio Girardot Stadium'
-  },
-  {
-    id: 'e3',
-    title: 'Salsa Night at Eslabón Prendido',
-    image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=800&auto=format&fit=crop',
-    date: 'Tonight',
-    price: '$10',
-    location: 'Centro'
-  }
-];
-
-const INITIAL_STAYS: Stay[] = [
-  {
-    id: 's1',
-    title: 'The Click Clack Hotel Medellín',
-    image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=800&auto=format&fit=crop',
-    rating: 4.8,
-    priceTier: '$$$',
-    area: 'El Poblado',
-    badge: 'Best Match'
-  },
-  {
-    id: 's2',
-    title: 'Elcielo Hotel & Restaurant',
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop',
-    rating: 4.9,
-    priceTier: '$$$$',
-    area: 'El Poblado',
-    badge: 'Luxury Pick'
-  },
-  {
-    id: 's3',
-    title: 'Masaya Medellín',
-    image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=800&auto=format&fit=crop',
-    rating: 4.6,
-    priceTier: '$$',
-    area: 'El Poblado',
-    badge: 'Value'
-  }
-];
-
-const INITIAL_EXPERIENCES: Experience[] = [
-  {
-    id: 'x1',
-    title: 'Comuna 13 Graffiti Tour & Street Food',
-    image: 'https://images.unsplash.com/photo-1583531352515-8884af319dc1?q=80&w=800&auto=format&fit=crop',
-    duration: '3 hours',
-    fit: 'Easy to fit'
-  },
-  {
-    id: 'x2',
-    title: 'Coffee Farm Tour in Guatape',
-    image: 'https://images.unsplash.com/photo-1626202384351-e1293c683b54?q=80&w=800&auto=format&fit=crop',
-    duration: 'Full day',
-    fit: 'Must see'
-  },
-  {
-    id: 'x3',
-    title: 'Paragliding over San Felix',
-    image: 'https://images.unsplash.com/photo-1475518112798-86ae35e9e620?q=80&w=800&auto=format&fit=crop',
-    duration: '4 hours',
-  }
-];
-
-const INITIAL_MAP_PLACES = [
-  // Events
-  { id: 'e1', lat: 40, lng: 45, title: 'Flower Festival', category: 'Events' as const },
-  { id: 'e2', lat: 60, lng: 55, title: 'Karol G Concert', category: 'Events' as const },
-  { id: 'e3', lat: 35, lng: 30, title: 'Salsa Night', category: 'Events' as const },
-  // Stays
-  { id: 's1', lat: 45, lng: 60, title: 'Click Clack', category: 'Stays' as const, price: '$220', isLuxury: true },
-  { id: 's2', lat: 48, lng: 62, title: 'Elcielo', category: 'Stays' as const, price: '$450', isLuxury: true },
-  { id: 's3', lat: 42, lng: 58, title: 'Masaya', category: 'Stays' as const, price: '$80' },
-  // Experiences
-  { id: 'x1', lat: 70, lng: 20, title: 'Comuna 13', category: 'Attractions' as const },
-  { id: 'x2', lat: 20, lng: 80, title: 'Guatape', category: 'Attractions' as const },
-  { id: 'x3', lat: 80, lng: 40, title: 'Paragliding', category: 'Attractions' as const },
-];
-
 export default function TripDiscoveryDashboard() {
-  const [activePlaceId, setActivePlaceId] = useState<string | null>(null);
-  const { sendMessage, toggleOpen, saveItem } = useAI();
-  
-  // State for content
-  const [events, setEvents] = useState(INITIAL_EVENTS);
-  const [stays, setStays] = useState(INITIAL_STAYS);
-  const [experiences, setExperiences] = useState(INITIAL_EXPERIENCES);
-  const [mapPlaces, setMapPlaces] = useState(INITIAL_MAP_PLACES);
+  const { sendMessage, toggleOpen } = useAI();
+  const { 
+    events, stays, experiences, mapPlaces, 
+    activePlaceId, setActivePlaceId,
+    addToTrip, filterByAI, savedIds
+  } = useTrip();
 
   const handleSearch = (query: string) => {
-    // Quick Actions Simulation
-    if (query === 'More luxury') {
-       toast.success("Concierge: Upgrading your recommendations to Luxury tier...");
-       setTimeout(() => {
-           setStays(prev => prev.filter(s => s.priceTier === '$$$$' || s.priceTier === '$$$'));
-           toast.info("Showing only luxury stays.");
-       }, 800);
-       return;
-    }
-    
-    if (query === 'Quieter places') {
-        toast.success("Concierge: Filtering for quiet zones...");
-        setTimeout(() => {
-            setEvents([]); // Remove noisy events
-            setStays(prev => prev.filter(s => s.area !== 'El Poblado')); // Mock filter
-            toast.info("Removed high-traffic areas.");
-        }, 800);
-        return;
-    }
-
-    // Default: Open AI Chat
+    // 1. Show feedback
     toast.success(`Concierge is looking for "${query}"...`);
+    
+    // 2. Filter data in TripContext
+    filterByAI(query);
+    
+    // 3. Send message to AI for chat history (and potential future advanced logic)
     sendMessage(query);
-    toggleOpen();
+    
+    // Only open chat if it's a complex query or user explicitly asks (optional, here we keep it simple)
+    // toggleOpen(); 
   };
 
   const handleAdd = (item: any) => {
-    saveItem({
-        id: item.id,
-        type: item.date ? 'event' : item.rating ? 'property' : 'experience',
-        title: item.title,
-        image: item.image,
-        price: item.price || item.priceTier,
-        location: item.location || item.area,
-        date: item.date,
-        // Mock lat/lng lookup
-        lat: INITIAL_MAP_PLACES.find(p => p.id === item.id)?.lat || 50,
-        lng: INITIAL_MAP_PLACES.find(p => p.id === item.id)?.lng || 50,
-    });
-    toast.success(`Added "${item.title}" to your trip.`);
+    // Determine type based on properties
+    const type = item.date ? 'event' : item.rating ? 'stay' : 'experience';
+    addToTrip(item, type);
   };
 
   const handlePinClick = (id: string) => {
@@ -192,13 +71,25 @@ export default function TripDiscoveryDashboard() {
         {/* Content Sections */}
         <div className="space-y-10 pb-20">
             <div id="section-events">
-                <EventCardList events={events} onAdd={handleAdd} />
+                <EventCardList 
+                  events={events} 
+                  onAdd={handleAdd} 
+                  savedIds={savedIds}
+                />
             </div>
             <div id="section-stays">
-                <StayRecommendationList stays={stays} onAdd={handleAdd} />
+                <StayRecommendationList 
+                  stays={stays} 
+                  onAdd={handleAdd} 
+                  savedIds={savedIds}
+                />
             </div>
             <div id="section-experiences">
-                <ExperienceCardList experiences={experiences} onAdd={handleAdd} />
+                <ExperienceCardList 
+                  experiences={experiences} 
+                  onAdd={handleAdd} 
+                  savedIds={savedIds}
+                />
             </div>
         </div>
       </div>
@@ -217,7 +108,7 @@ export default function TripDiscoveryDashboard() {
       <div className="md:hidden">
           <Drawer>
               <DrawerTrigger asChild>
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30">
                     <Button className="bg-emerald-900 text-white px-6 py-6 rounded-full shadow-luxury font-bold flex items-center gap-2 hover:bg-emerald-800 transition-all hover:scale-105 active:scale-95">
                         <Map className="w-5 h-5" />
                         View Interactive Map
@@ -236,6 +127,9 @@ export default function TripDiscoveryDashboard() {
               </DrawerContent>
           </Drawer>
       </div>
+
+      {/* Floating Summary Sheet */}
+      <TripSummarySheet />
     </div>
   );
 }
