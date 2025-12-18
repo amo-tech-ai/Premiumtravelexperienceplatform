@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export type AIIntent = 'GENERAL' | 'REAL_ESTATE' | 'EVENTS' | 'ITINERARY' | 'DINING' | 'STAYS' | 'TOURIST' | 'LOCATIONS' | 'GUIDES';
+export type AIIntent = 'GENERAL' | 'REAL_ESTATE' | 'EVENTS' | 'ITINERARY' | 'DINING' | 'STAYS' | 'TOURIST' | 'LOCATIONS' | 'GUIDES' | 'DISCOVERY';
 
 export interface Message {
   id: string;
@@ -18,6 +18,8 @@ export interface SavedItem {
   date?: string;
   price?: string;
   location?: string;
+  lat?: number;
+  lng?: number;
   notes?: string;
   data?: any; // For flexible data like itinerary activities
 }
@@ -35,6 +37,7 @@ export interface AIContextType {
   resetChat: () => void;
   saveItem: (item: SavedItem) => void;
   removeItem: (id: string) => void;
+  lastAction: AIEvent | null;
 }
 
 const AIContext = createContext<AIContextType | undefined>(undefined);
@@ -44,6 +47,7 @@ const STORAGE_KEY = 'medellin_ai_context_v2';
 export const AIProvider = ({ children }: { children: ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [lastAction, setLastAction] = useState<AIEvent | null>(null);
   const navigate = useNavigate();
   
   // Load initial state from storage or default
@@ -172,6 +176,56 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
       let aiResponseContent = "";
       const lowerText = text.toLowerCase();
       
+      // -- Simple NL Parsing for Actions --
+      const newActions: any[] = [];
+
+      // Budget parsing: "under 500", "budget 200"
+      const budgetMatch = lowerText.match(/(?:under|budget|max|limit)\s?\$?(\d+)/);
+      if (budgetMatch) {
+          const max = parseInt(budgetMatch[1]);
+          newActions.push({
+              type: 'UPDATE_FILTERS',
+              payload: { budget: { min: 0, max, currency: 'USD' } },
+              timestamp: Date.now()
+          });
+      }
+
+      // Guest parsing: "for 2", "table for 4", "party of 3"
+      const guestMatch = lowerText.match(/(?:for|of)\s(\d+)/);
+      if (guestMatch) {
+          const guests = parseInt(guestMatch[1]);
+          newActions.push({
+              type: 'UPDATE_FILTERS',
+              payload: { guests },
+              timestamp: Date.now()
+          });
+      }
+
+      // Tag parsing
+      const keywords = ['romantic', 'rooftop', 'outdoor', 'vegan', 'sushi', 'italian', 'live music'];
+      const foundTags = keywords.filter(k => lowerText.includes(k));
+      if (foundTags.length > 0) {
+           // We need to fetch current tags first? No, we can just append or set.
+           // Since we don't have access to WizardContext here, we'll send a partial update
+           // The bridge will handle merging if needed, or we just overwrite. 
+           // Better to send what we found.
+           // Let's assume the payload replaces or merges in WizardContext. 
+           // Actually WizardContext.updateFilters merges top-level keys. 
+           // So providing 'tags' will overwrite tags. 
+           // Limitation: We can't easily "append" without reading state. 
+           // For this demo, overwriting with found tags + preserving intent is okay-ish.
+           newActions.push({
+              type: 'UPDATE_FILTERS',
+              payload: { tags: foundTags },
+              timestamp: Date.now()
+           });
+      }
+
+      if (newActions.length > 0) {
+          // Dispatch the last one for now (or batched if we supported it)
+          setLastAction(newActions[newActions.length - 1]);
+      }
+      
       switch (newIntent) {
         case 'REAL_ESTATE':
           if (lowerText.includes('penthouse') || lowerText.includes('luxury')) {
@@ -201,6 +255,9 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
           break;
         case 'TOURIST':
              aiResponseContent = "Opening the map. You can filter by 'Real Estate', 'Dining', or 'Culture' to see what's around you.";
+             break;
+        case 'DISCOVERY':
+             aiResponseContent = "I've updated your dashboard with new recommendations based on your request. Let me know if you'd like to book any of them.";
              break;
         default:
           aiResponseContent = "I can help you with that. Would you like to see events, properties, or plan a trip?";

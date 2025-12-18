@@ -5,6 +5,7 @@ import { Footer } from "./Footer";
 import { cn } from "../ui/utils";
 import { ConciergeFab } from "../ai/ConciergeFab";
 import { ConciergeOverlay } from "../ai/ConciergeOverlay";
+import { TripCreateModal } from "../trip-wizard/TripCreateModal";
 
 interface AppShellProps {
   children: ReactNode;
@@ -23,6 +24,7 @@ export function AppShell({ children, className }: AppShellProps) {
       <Footer />
       <ConciergeFab />
       <ConciergeOverlay />
+      <TripCreateModal />
       <BottomNav />
     </div>
   );

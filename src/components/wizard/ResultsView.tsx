@@ -8,6 +8,7 @@ import { Button } from '../ui/button';
 import { Map, List, LayoutGrid } from 'lucide-react';
 import { Venue, UserIntent } from '../../types/wizard';
 import { cn } from '../ui/utils';
+import { MockEngine } from '../../utils/mockEngine';
 
 // --- Configuration ---
 
@@ -27,140 +28,6 @@ const SECONDARY_FILTERS = [
   'Nightlife',
   'Wellness'
 ];
-
-// --- Mock Data Generator ---
-
-const generateMockResults = (category: UserIntent): Venue[] => {
-  const count = 8;
-  
-  if (category === 'DINING') {
-    const types = ['Bistro', 'Rooftop', 'Omakase', 'Steakhouse'];
-    return Array.from({ length: count }).map((_, i) => ({
-      id: `dining-${i}`,
-      type: 'RESTAURANT',
-      name: `El Cielo ${types[i % types.length]}`,
-      description: "Modern Colombian cuisine with a sensory experience.",
-      shortDescription: "$$$$ • Molecular Dining",
-      images: [
-        "https://images.unsplash.com/photo-1673705988622-18d05a5cf293?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-        "https://images.unsplash.com/photo-1559339352-11d035aa65de?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
-      ],
-      rating: 4.8,
-      reviewCount: 320,
-      priceLevel: 4,
-      location: {
-        address: "Cl. 7D #43C-36",
-        lat: 6.208 + (Math.random() * 0.02),
-        lng: -75.567 + (Math.random() * 0.02),
-        neighborhood: "El Poblado"
-      },
-      metadata: {},
-      ai: { matchScore: 98, reasoning: "Top rated for fine dining.", tags: ["Luxury", "Gastronomy"] }
-    }));
-  }
-
-  if (category === 'TOURIST') {
-    return Array.from({ length: count }).map((_, i) => ({
-      id: `tourist-${i}`,
-      type: 'EXPERIENCE',
-      name: i % 2 === 0 ? "Comuna 13 Private Tour" : "Guatapé Helicopter Trip",
-      description: "Experience the transformation of Medellín with a local guide.",
-      shortDescription: "Culture • 4 Hours",
-      images: [
-        "https://images.unsplash.com/photo-1662218704415-75f5c569bd28?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-        "https://images.unsplash.com/photo-1596436889106-be35e843f974?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
-      ],
-      rating: 4.9,
-      reviewCount: 850,
-      priceLevel: 3,
-      location: {
-        address: "Comuna 13",
-        lat: 6.250 + (Math.random() * 0.04),
-        lng: -75.600 + (Math.random() * 0.04),
-        neighborhood: "San Javier"
-      },
-      metadata: {},
-      ai: { matchScore: 95, reasoning: "Must-do cultural experience.", tags: ["Culture", "History"] }
-    }));
-  }
-
-  if (category === 'STAYS') {
-    return Array.from({ length: count }).map((_, i) => ({
-      id: `stay-${i}`,
-      type: 'PROPERTY',
-      name: "The Click Clack Hotel",
-      description: "Design hotel with rooftop pool and mountain views.",
-      shortDescription: "Hotel • El Poblado",
-      images: [
-        "https://images.unsplash.com/photo-1757264119016-7e6b568b810d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-        "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
-      ],
-      rating: 4.7,
-      reviewCount: 1200,
-      priceLevel: 3,
-      location: {
-        address: "Calle 10B",
-        lat: 6.209 + (Math.random() * 0.02),
-        lng: -75.565 + (Math.random() * 0.02),
-        neighborhood: "El Poblado"
-      },
-      metadata: {},
-      ai: { matchScore: 92, reasoning: "Perfect location for nightlife.", tags: ["Design", "Rooftop"] }
-    }));
-  }
-
-  if (category === 'LOCATIONS') {
-    const neighborhoods = ['El Poblado', 'Laureles', 'Envigado', 'Sabaneta'];
-    return Array.from({ length: 4 }).map((_, i) => ({
-      id: `loc-${i}`,
-      type: 'EXPERIENCE', // Using Experience type for now to render card
-      name: neighborhoods[i],
-      description: "The heart of nightlife and luxury living in Medellín.",
-      shortDescription: "Neighborhood Guide",
-      images: [
-        "https://images.unsplash.com/photo-1599595604477-96c429780011?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
-      ],
-      rating: 5.0,
-      reviewCount: 0,
-      priceLevel: 2,
-      location: {
-        address: "Medellín",
-        lat: 6.21 + (Math.random() * 0.05),
-        lng: -75.57 + (Math.random() * 0.05),
-        neighborhood: neighborhoods[i]
-      },
-      metadata: {},
-      ai: { matchScore: 100, reasoning: "Most popular area for tourists.", tags: ["Neighborhood", "Safe"] }
-    }));
-  }
-
-  if (category === 'GUIDES') {
-    return Array.from({ length: 5 }).map((_, i) => ({
-      id: `guide-${i}`,
-      type: 'EXPERIENCE',
-      name: "72 Hours in Medellín",
-      description: "The ultimate itinerary for a long weekend.",
-      shortDescription: "Editorial Guide",
-      images: [
-        "https://images.unsplash.com/photo-1591503487373-c466436e2978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
-      ],
-      rating: 5.0,
-      reviewCount: 45,
-      priceLevel: 1,
-      location: {
-        address: "Medellín",
-        lat: 6.24 + (Math.random() * 0.05),
-        lng: -75.58 + (Math.random() * 0.05),
-        neighborhood: "City Wide"
-      },
-      metadata: {},
-      ai: { matchScore: 99, reasoning: "Curated by locals.", tags: ["Editorial", "Itinerary"] }
-    }));
-  }
-
-  // Default Fallback
-  return [];
-};
 
 export const ResultsView = () => {
   const { results, ui, setUI, setResults, filters, setIntent, updateFilters } = useWizard();
@@ -183,9 +50,11 @@ export const ResultsView = () => {
         setIntent('STAYS');
         return;
     }
-    const mocks = generateMockResults(filters.intent);
+    
+    // Use the Mock Engine
+    const mocks = MockEngine.search(filters);
     setResults(mocks);
-  }, [filters.intent, setResults, setIntent]);
+  }, [filters, setResults, setIntent]); // React to ALL filter changes now
 
   const handleToggleView = (mode: 'MAP' | 'LIST' | 'SPLIT') => {
     setUI({ viewMode: mode });

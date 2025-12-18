@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Venue } from '../../types/wizard';
 import { LuxuryCard } from '../ui/LuxuryCard';
 import { Heart } from 'lucide-react';
-import { useWizard } from '../../context/WizardContext';
+import { useAI } from '../../context/AIContext';
 import { cn } from '../ui/utils';
 
 interface ResultsListProps {
@@ -12,13 +12,30 @@ interface ResultsListProps {
 }
 
 export const ResultsList = ({ results, onSelect }: ResultsListProps) => {
-  const { savedIds, toggleSaved } = useWizard();
+  const { savedItems, saveItem, removeItem } = useAI();
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 p-6 pb-24 overflow-y-auto h-full scrollbar-hide">
       {results.map((venue, index) => {
-        const isSaved = savedIds.includes(venue.id);
+        const isSaved = savedItems.some(item => item.id === venue.id);
         
+        const handleToggleSave = (e: React.MouseEvent) => {
+          e.stopPropagation();
+          if (isSaved) {
+            removeItem(venue.id);
+          } else {
+            saveItem({
+              id: venue.id,
+              type: 'experience',
+              title: venue.name,
+              image: venue.images[0],
+              location: venue.location.neighborhood,
+              price: "$".repeat(venue.priceLevel),
+              data: venue
+            });
+          }
+        };
+
         return (
           <motion.div
             key={venue.id}
@@ -41,10 +58,7 @@ export const ResultsList = ({ results, onSelect }: ResultsListProps) => {
               status={venue.id === 'sold-out' ? 'sold_out' : 'active'}
               action={
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleSaved(venue.id);
-                  }}
+                  onClick={handleToggleSave}
                   className={cn(
                     "p-2 rounded-full backdrop-blur-md transition-all duration-200 hover:scale-110",
                     isSaved 

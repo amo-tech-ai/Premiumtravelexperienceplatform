@@ -26,7 +26,8 @@ const INITIAL_UI: UIState = {
   isLoading: false,
   viewMode: 'SPLIT',
   activeResultId: null,
-  isChatOpen: false
+  isChatOpen: false,
+  isCreateTripOpen: false
 };
 
 const WizardContext = createContext<WizardContextType | undefined>(undefined);
@@ -35,7 +36,6 @@ export const WizardProvider = ({ children }: { children: ReactNode }) => {
   const [filters, setFiltersState] = useState<FilterState>(INITIAL_FILTERS);
   const [results, setResultsState] = useState<Venue[]>([]);
   const [ui, setUIState] = useState<UIState>(INITIAL_UI);
-  const [savedIds, setSavedIds] = useState<string[]>([]);
 
   // Actions
   const setIntent = useCallback((intent: UserIntent) => {
@@ -54,6 +54,14 @@ export const WizardProvider = ({ children }: { children: ReactNode }) => {
 
   const setUI = useCallback((updates: Partial<UIState>) => {
     setUIState(prev => ({ ...prev, ...updates }));
+  }, []);
+
+  const openCreateTrip = useCallback(() => {
+    setUIState(prev => ({ ...prev, isCreateTripOpen: true }));
+  }, []);
+
+  const closeCreateTrip = useCallback(() => {
+    setUIState(prev => ({ ...prev, isCreateTripOpen: false }));
   }, []);
 
   const handleAIEvent = useCallback((event: AIEvent) => {
@@ -77,24 +85,18 @@ export const WizardProvider = ({ children }: { children: ReactNode }) => {
       case 'SELECT_RESULT':
         setUI({ activeResultId: event.payload });
         break;
+      case 'OPEN_CREATE_TRIP':
+        openCreateTrip();
+        break;
       default:
         console.warn('Unknown AI Action:', event.type);
     }
-  }, [setIntent, updateFilters, setResults, setUI]);
+  }, [setIntent, updateFilters, setResults, setUI, openCreateTrip]);
 
   const resetWizard = useCallback(() => {
     setFiltersState(INITIAL_FILTERS);
     setResultsState([]);
     setUIState(INITIAL_UI);
-    setSavedIds([]);
-  }, []);
-
-  const toggleSaved = useCallback((id: string) => {
-    setSavedIds(prev => 
-      prev.includes(id) 
-        ? prev.filter(item => item !== id)
-        : [...prev, id]
-    );
   }, []);
 
   const value = {
@@ -107,8 +109,8 @@ export const WizardProvider = ({ children }: { children: ReactNode }) => {
     setUI,
     handleAIEvent,
     resetWizard,
-    savedIds,
-    toggleSaved
+    openCreateTrip,
+    closeCreateTrip
   };
 
   return (

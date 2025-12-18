@@ -3,13 +3,15 @@ import { motion, AnimatePresence } from "motion/react";
 import { Calendar } from "../components/ui/calendar";
 import { Button } from "../components/ui/button";
 import { Slider } from "../components/ui/slider";
-import { ChevronRight, ChevronLeft, Check, Sparkles, ChevronUp, ChevronDown, MessageSquare, Save } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check, Sparkles, ChevronUp, ChevronDown, MessageSquare, Save, MapPin } from "lucide-react";
 import { cn } from "../components/ui/utils";
-import { DateRange } from "react-day-picker";
-import { addDays, format } from "date-fns";
-import { useNavigate } from "react-router-dom";
+import { DateRange } from "react-day-picker@8.10.1";
+import { addDays, format } from "date-fns@3.6.0";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAI } from "../context/AIContext";
 import { toast } from "sonner@2.0.3";
+
+import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 
 // DND Imports
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
@@ -21,6 +23,8 @@ interface Activity {
   time: string;
   title: string;
   category: string;
+  image?: string;
+  isSavedItem?: boolean;
 }
 
 const INTERESTS = [
@@ -72,40 +76,56 @@ const DEFAULT_ACTIVITIES = [
     { title: 'Dinner at Don Diablo', category: 'Food' }
 ];
 
-const generateActivities = (selectedInterests: string[]): Activity[] => {
-  let pool: { title: string; category: string }[] = [];
+const generateActivities = (selectedInterests: string[], savedItems: any[] = []): Activity[] => {
+  let pool: { title: string; category: string; image?: string; id?: string }[] = [];
   
+  // 1. Prioritize Saved Items
+  const savedActivities = savedItems.map(item => ({
+    id: item.id,
+    title: item.title,
+    category: item.type === 'experience' ? 'Experience' : 'Dining', // Simple mapping
+    image: item.image,
+    isSavedItem: true
+  }));
+
+  // 2. Fill with Interest-based items
   if (selectedInterests.length === 0) {
     pool = DEFAULT_ACTIVITIES;
   } else {
-    // Collect 2 activities from each selected interest
     selectedInterests.forEach(interest => {
        if (ACTIVITY_POOL[interest]) {
          pool.push(...ACTIVITY_POOL[interest]);
        }
     });
-    // Fill with defaults if not enough
-    if (pool.length < 5) {
-       pool.push(...DEFAULT_ACTIVITIES.slice(0, 5 - pool.length));
-    }
   }
 
-  // Shuffle and pick 5
-  const shuffled = pool.sort(() => 0.5 - Math.random()).slice(0, 5);
+  // Combine: Start with saved items, fill the rest from pool
+  let finalSelection = [...savedActivities];
   
-  const times = ['09:00 AM', '11:00 AM', '01:00 PM', '04:00 PM', '08:00 PM'];
+  // Calculate how many more we need to reach 5
+  const needed = 5 - finalSelection.length;
   
-  return shuffled.map((item, i) => ({
-    id: `generated-${i}`,
+  if (needed > 0) {
+      const shuffledPool = pool
+        .filter(p => !finalSelection.some(s => s.title === p.title)) // Avoid duplicates
+        .sort(() => 0.5 - Math.random())
+        .slice(0, needed);
+      finalSelection = [...finalSelection, ...shuffledPool];
+  }
+
+  // Limit to 5-7 items max for the demo
+  finalSelection = finalSelection.slice(0, 7);
+
+  const times = ['09:00 AM', '11:00 AM', '01:00 PM', '04:00 PM', '07:00 PM', '09:00 PM', '11:00 PM'];
+  
+  return finalSelection.map((item, i) => ({
+    id: item.id || `generated-${i}`,
     time: times[i] || 'Flexible',
     title: item.title,
-    category: item.category
-  })).sort((a, b) => {
-      // Simple sort by time string (AM/PM logic needed ideally, but simple string sort works for this set)
-      // Actually 09 AM < 11 AM < 01 PM < 04 PM < 08 PM
-      // Let's just trust the index map since we assign times in order
-      return 0;
-  });
+    category: item.category,
+    image: item.image,
+    isSavedItem: (item as any).isSavedItem
+  }));
 };
 
 // ----------------------------------------------------------------------
@@ -146,8 +166,9 @@ const ActivityItem = ({ activity, index, total, moveActivity, manualMove }: {
     <div 
       ref={ref}
       className={cn(
-        "flex gap-4 p-4 bg-white rounded-xl border border-slate-100 mb-3 hover:shadow-md transition-shadow group relative cursor-grab active:cursor-grabbing",
-        isDragging ? "opacity-50" : "opacity-100"
+        "flex gap-4 p-4 bg-white rounded-xl border mb-3 hover:shadow-md transition-all group relative cursor-grab active:cursor-grabbing",
+        isDragging ? "opacity-50" : "opacity-100",
+        activity.isSavedItem ? "border-emerald-200 bg-emerald-50/30" : "border-slate-100"
       )}
     >
       <div className="w-16 pt-1 text-sm font-medium text-slate-400 text-right hidden md:block">
@@ -155,7 +176,27 @@ const ActivityItem = ({ activity, index, total, moveActivity, manualMove }: {
       </div>
       <div className="flex-1">
         <div className="flex justify-between items-start">
-          <h4 className="font-medium text-slate-900">{activity.title}</h4>
+          <div className="flex items-start gap-3">
+             {activity.image && (
+                 <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 hidden sm:block">
+                     <ImageWithFallback src={activity.image} alt={activity.title} className="w-full h-full object-cover" />
+                 </div>
+             )}
+             <div>
+                <h4 className="font-medium text-slate-900">{activity.title}</h4>
+                <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded-full inline-block font-medium">
+                    {activity.category}
+                    </span>
+                    {activity.isSavedItem && (
+                        <span className="flex items-center gap-1 text-[10px] text-emerald-600 font-medium">
+                            <Check className="w-3 h-3" /> From Collection
+                        </span>
+                    )}
+                </div>
+             </div>
+          </div>
+
           {/* Mobile Move Controls */}
           <div className="flex flex-col md:hidden gap-1 ml-2">
             <button 
@@ -174,9 +215,6 @@ const ActivityItem = ({ activity, index, total, moveActivity, manualMove }: {
             </button>
           </div>
         </div>
-        <span className="text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full mt-1 inline-block font-medium">
-          {activity.category}
-        </span>
         <div className="md:hidden text-xs text-slate-400 mt-1">
           {activity.time}
         </div>
@@ -188,16 +226,17 @@ const ActivityItem = ({ activity, index, total, moveActivity, manualMove }: {
 // ----------------------------------------------------------------------
 // Result View
 // ----------------------------------------------------------------------
-function ItineraryResult({ dateRange, interests, budget }: any) {
+function ItineraryResult({ dateRange, interests, budget, locationName = "Medellín" }: any) {
   const navigate = useNavigate();
-  const { injectMessage, saveItem } = useAI();
+  const { injectMessage, saveItem, savedItems } = useAI();
   const [activities, setActivities] = useState<Activity[]>([]);
 
   // Generate activities based on interests on mount
   React.useEffect(() => {
-    const generated = generateActivities(interests);
+    // Pass savedItems to generator
+    const generated = generateActivities(interests, savedItems);
     setActivities(generated);
-  }, [interests]);
+  }, [interests]); // Keep stable, don't re-shuffle on every savedItem change unless intentful
 
   const moveActivity = (dragIndex: number, hoverIndex: number) => {
     const dragItem = activities[dragIndex];
@@ -217,26 +256,24 @@ function ItineraryResult({ dateRange, interests, budget }: any) {
 
   const handleConsultConcierge = () => {
     // 1. Create a summary string
-    const summary = `I've created a preliminary itinerary for my trip. Interests: ${interests.join(", ")}. Budget: $${budget}. Planned activities: ${activities.map(a => a.title).join(", ")}. Can you help me refine this and book the restaurants?`;
+    const summary = `I've created a preliminary itinerary for my trip to ${locationName}. Interests: ${interests.join(", ")}. Budget: $${budget}. Planned activities: ${activities.map(a => a.title).join(", ")}. Can you help me refine this and book the restaurants?`;
     
-    // 2. Inject into AI Context
+    // 2. Inject into AI Context and Open Chat
     injectMessage(summary, 'user', 'ITINERARY');
-    
-    // 3. Navigate
-    navigate('/concierge');
+    useAI().toggleOpen(); // Open the chat overlay immediately
   };
 
   const handleSaveItinerary = () => {
     saveItem({
         id: `trip-${Date.now()}`,
         type: 'itinerary',
-        title: `Trip to Medellín`,
+        title: `Trip to ${locationName}`,
         price: `$${budget}`,
         date: dateRange?.from ? `${format(dateRange.from, 'MMM d')} - ${dateRange.to ? format(dateRange.to, 'MMM d') : ''}` : 'Dates TBD',
         image: "https://images.unsplash.com/photo-1599582106603-946654a9388c?auto=format&fit=crop&q=80",
         data: { activities, interests, budget },
         notes: `${activities.length} Activities • $${budget} Budget`,
-        location: "Medellín, Colombia"
+        location: `${locationName}, Colombia`
     });
     toast.success("Itinerary saved to Dashboard");
   };
@@ -249,7 +286,7 @@ function ItineraryResult({ dateRange, interests, budget }: any) {
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
           <div className="max-w-4xl mx-auto text-center relative z-10">
             <span className="inline-block px-3 py-1 bg-white/10 rounded-full text-sm font-medium mb-4 backdrop-blur-md border border-white/10 text-emerald-100">
-              Trip to Medellín
+              Trip to {locationName}
             </span>
             <h1 className="font-serif text-4xl md:text-5xl font-bold mb-4">
               Your Curated Journey
@@ -347,14 +384,36 @@ function ItineraryResult({ dateRange, interests, budget }: any) {
 // Main Wizard Component
 // ----------------------------------------------------------------------
 export default function ItineraryWizard() {
-  const [step, setStep] = useState(1);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+  const location = useLocation();
+  const initialState = location.state as { 
+    budget?: number; 
+    dateRange?: DateRange; 
+    step?: number;
+    interests?: string[];
+    locationName?: string;
+  } | null;
+
+  const [step, setStep] = useState(initialState?.step || 1);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(initialState?.dateRange || {
     from: new Date(),
     to: addDays(new Date(), 5),
   });
-  const [interests, setInterests] = useState<string[]>([]);
-  const [budget, setBudget] = useState([2000]);
+  const [interests, setInterests] = useState<string[]>(initialState?.interests || []);
+  const [budget, setBudget] = useState([initialState?.budget || 2000]);
+  const [locationName, setLocationName] = useState(initialState?.locationName || "Medellín");
   const [isGenerating, setIsGenerating] = useState(false);
+  const { savedItems } = useAI();
+
+  // If we jumped straight to results (step 4) via state, we might want to simulate generation first
+  // But for now, let's just respect the passed step.
+  
+  React.useEffect(() => {
+     if (initialState?.step === 4) {
+         setIsGenerating(true);
+         const timer = setTimeout(() => setIsGenerating(false), 2000);
+         return () => clearTimeout(timer);
+     }
+  }, [initialState]);
 
   const handleNext = () => {
     if (step < 3) {
@@ -379,7 +438,7 @@ export default function ItineraryWizard() {
   };
 
   if (step === 4) {
-    return <ItineraryResult dateRange={dateRange} interests={interests} budget={budget[0]} />;
+    return <ItineraryResult dateRange={dateRange} interests={interests} budget={budget[0]} locationName={locationName} />;
   }
 
   return (
@@ -470,8 +529,34 @@ export default function ItineraryWizard() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="grid grid-cols-2 gap-4 w-full"
+                    className="w-full"
                   >
+                    {/* Saved Items Alert */}
+                    {savedItems.length > 0 && (
+                      <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                          <Check className="w-4 h-4" />
+                        </div>
+                        <div>
+                           <p className="text-sm font-bold text-emerald-900">Found {savedItems.length} Saved Places</p>
+                           <p className="text-xs text-emerald-700">We'll prioritize these in your itinerary.</p>
+                        </div>
+                        <div className="flex -space-x-2 ml-auto">
+                           {savedItems.slice(0, 3).map((item, i) => (
+                             <div key={item.id} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-slate-200">
+                                <ImageWithFallback src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                             </div>
+                           ))}
+                           {savedItems.length > 3 && (
+                             <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] text-slate-500 font-bold">
+                               +{savedItems.length - 3}
+                             </div>
+                           )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4 w-full">
                     {INTERESTS.map((interest) => (
                       <button
                         key={interest.id}
@@ -495,6 +580,7 @@ export default function ItineraryWizard() {
                         )}
                       </button>
                     ))}
+                    </div>
                   </motion.div>
                 )}
 

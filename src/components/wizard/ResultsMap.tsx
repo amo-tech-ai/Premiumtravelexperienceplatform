@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { MapPin, Heart } from 'lucide-react';
 import { Venue } from '../../types/wizard';
-import { useWizard } from '../../context/WizardContext';
+import { useAI } from '../../context/AIContext';
 
 interface ResultsMapProps {
   results: Venue[];
@@ -11,7 +11,7 @@ interface ResultsMapProps {
 }
 
 export const ResultsMap = ({ results, activeId, onSelect }: ResultsMapProps) => {
-  const { savedIds } = useWizard();
+  const { savedItems } = useAI();
 
   // Deterministic random position generator for demo
   const getPosition = (id: string, index: number) => {
@@ -39,7 +39,7 @@ export const ResultsMap = ({ results, activeId, onSelect }: ResultsMapProps) => 
       {results.map((venue, index) => {
         const pos = getPosition(venue.id, index);
         const isActive = activeId === venue.id;
-        const isSaved = savedIds.includes(venue.id);
+        const isSaved = savedItems.some(item => item.id === venue.id);
 
         return (
           <motion.div

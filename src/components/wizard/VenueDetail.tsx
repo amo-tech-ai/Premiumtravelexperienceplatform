@@ -13,7 +13,7 @@ import { Separator } from '../ui/separator';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { Venue } from '../../types/wizard';
 import { BookingSheet } from './BookingSheet';
-import { useWizard } from '../../context/WizardContext';
+import { useAI } from '../../context/AIContext';
 import { 
   Star, 
   MapPin, 
@@ -36,11 +36,27 @@ interface VenueDetailProps {
 
 export const VenueDetail = ({ venue, isOpen, onClose }: VenueDetailProps) => {
   const [showBooking, setShowBooking] = useState(false);
-  const { savedIds, toggleSaved } = useWizard();
+  const { savedItems, saveItem, removeItem } = useAI();
 
   if (!venue) return null;
 
-  const isSaved = savedIds.includes(venue.id);
+  const isSaved = savedItems.some(item => item.id === venue.id);
+
+  const handleToggleSave = () => {
+    if (isSaved) {
+      removeItem(venue.id);
+    } else {
+      saveItem({
+        id: venue.id,
+        type: 'experience', // Generic type for wizard results
+        title: venue.name,
+        image: venue.images[0],
+        location: venue.location.neighborhood,
+        price: "$".repeat(venue.priceLevel),
+        data: venue
+      });
+    }
+  };
 
   return (
     <>
@@ -63,17 +79,17 @@ export const VenueDetail = ({ venue, isOpen, onClose }: VenueDetailProps) => {
             <Button size="icon" variant="secondary" className="rounded-full bg-white/20 backdrop-blur-md hover:bg-white/40 border-none text-white h-8 w-8">
               <Share2 className="w-4 h-4" />
             </Button>
-            <Button 
-              size="icon" 
-              variant="secondary" 
-              className={cn(
-                "rounded-full backdrop-blur-md border-none h-8 w-8 transition-colors",
-                isSaved ? "bg-white text-emerald-600 hover:bg-white/90" : "bg-white/20 text-white hover:bg-white/40"
-              )}
-              onClick={() => toggleSaved(venue.id)}
-            >
-              <Heart className={cn("w-4 h-4", isSaved && "fill-current")} />
-            </Button>
+              <Button 
+                size="icon" 
+                variant="secondary" 
+                className={cn(
+                  "rounded-full backdrop-blur-md border-none h-8 w-8 transition-colors",
+                  isSaved ? "bg-white text-emerald-600 hover:bg-white/90" : "bg-white/20 text-white hover:bg-white/40"
+                )}
+                onClick={handleToggleSave}
+              >
+                <Heart className={cn("w-4 h-4", isSaved && "fill-current")} />
+              </Button>
           </div>
 
           {/* Title & Badge Overlay */}

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PropertyCard, PropertyCardProps } from '../../components/real-estate/PropertyCard';
-import { Search, Filter, SlidersHorizontal, Map } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, Map, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useAI } from '../../context/AIContext';
+import { useWizard } from '../../context/WizardContext';
 
 const MOCK_PROPERTIES: PropertyCardProps[] = [
   {
@@ -84,6 +86,18 @@ const MOCK_PROPERTIES: PropertyCardProps[] = [
 const PropertySearch = () => {
   const [activeFilter, setActiveFilter] = useState('All');
   const navigate = useNavigate();
+  const { toggleOpen, injectMessage } = useAI();
+  const { setIntent } = useWizard();
+
+  // Sync Context
+  useEffect(() => {
+    setIntent('REAL_ESTATE');
+  }, [setIntent]);
+
+  const handleConciergeHelp = () => {
+    injectMessage("I'm looking at properties. Can you help me filter for investment opportunities?", 'user', 'REAL_ESTATE');
+    toggleOpen();
+  };
 
   const container = {
     hidden: { opacity: 0 },
@@ -147,6 +161,12 @@ const PropertySearch = () => {
                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-emerald-900 hover:border-emerald-200 transition-all"
                  >
                    <Map className="w-4 h-4" /> Map View
+                </button>
+                <button 
+                   onClick={handleConciergeHelp}
+                   className="flex items-center gap-2 px-4 py-2 bg-emerald-900 border border-emerald-900 rounded-lg text-sm font-medium text-white hover:bg-emerald-800 transition-all shadow-md"
+                 >
+                   <Sparkles className="w-4 h-4 text-emerald-200" /> Ask AI
                 </button>
               </div>
             </div>

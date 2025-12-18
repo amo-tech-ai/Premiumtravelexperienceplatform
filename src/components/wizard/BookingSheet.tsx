@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Venue } from '../../types/wizard';
-import { format } from 'date-fns';
+import { format } from 'date-fns@3.6.0';
 import { 
   Calendar as CalendarIcon, 
   Clock, 

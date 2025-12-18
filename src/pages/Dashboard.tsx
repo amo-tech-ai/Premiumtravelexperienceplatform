@@ -4,12 +4,15 @@ import { useAI } from '../context/AIContext';
 import { Link } from 'react-router-dom';
 import { 
   Building, Calendar, Map as MapIcon, Trash2, ArrowRight, 
-  LayoutDashboard, Heart, CalendarClock
+  LayoutDashboard, Heart, CalendarClock, MessageSquare
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Button } from '../components/ui/button';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { cn } from '../components/ui/utils';
+import { ExploreMap } from '../components/explore/ExploreMap';
+
+import { useWizard } from '../context/WizardContext';
 
 // Helper component for Empty State
 const EmptyDashboardState = ({ 
@@ -27,9 +30,9 @@ const EmptyDashboardState = ({
     <h3 className="text-xl font-serif text-slate-900 mb-2">{title}</h3>
     <p className="text-slate-500 mb-8 max-w-sm mx-auto">{description}</p>
     <div className="flex gap-4 justify-center">
-      <Link to="/experiences/medellin">
+      <Link to="/explore">
         <Button variant="outline" className="border-slate-200 hover:bg-emerald-50 hover:text-emerald-700">
-          Explore Events
+          Explore Map
         </Button>
       </Link>
       <Link to="/real-estate">
@@ -106,11 +109,19 @@ const SavedItemCard = ({ item, onRemove }: { item: any, onRemove: (id: string) =
 
 export default function Dashboard() {
   const { savedItems, removeItem, intent } = useAI();
+  const { openCreateTrip } = useWizard();
   
   // Filter items
   const properties = savedItems.filter(i => i.type === 'property');
   const itineraries = savedItems.filter(i => i.type === 'itinerary');
   const experiences = savedItems.filter(i => i.type !== 'property' && i.type !== 'itinerary');
+
+  const { injectMessage, toggleOpen } = useAI();
+  
+  const handleAskConcierge = () => {
+     injectMessage(`I have ${savedItems.length} items in my collection. Can you help me organize them into a trip?`, 'user', 'ITINERARY');
+     toggleOpen();
+  };
 
   return (
     <div className="min-h-screen bg-[#FAFAF9] pt-24 pb-20">
@@ -124,15 +135,55 @@ export default function Dashboard() {
               Manage your saved properties, events, and travel plans.
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
              <div className="bg-white px-4 py-2 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-sm font-medium text-slate-600">
                    Concierge Active
                 </span>
              </div>
+             
+             {savedItems.length > 0 && (
+                 <>
+                    <Button 
+                        variant="outline"
+                        onClick={handleAskConcierge}
+                        className="bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border-slate-200"
+                    >
+                        <MessageSquare className="w-4 h-4 mr-2" />
+                        Ask Concierge
+                    </Button>
+                    <Button 
+                        onClick={openCreateTrip}
+                        className="bg-emerald-900 text-white hover:bg-emerald-800 shadow-lg shadow-emerald-900/10"
+                    >
+                        <CalendarClock className="w-4 h-4 mr-2" />
+                        Plan Itinerary
+                    </Button>
+                 </>
+             )}
           </div>
         </div>
+
+        {/* Saved Places Map */}
+        {savedItems.length > 0 && (
+          <div className="mb-10 h-[300px] w-full rounded-3xl overflow-hidden border border-slate-200 shadow-sm relative group">
+             <ExploreMap 
+                places={savedItems.map(item => ({
+                   id: item.id,
+                   lat: item.lat || 50,
+                   lng: item.lng || 50,
+                   title: item.title,
+                   category: item.type === 'property' ? 'Stays' : 'Things to Do',
+                   price: item.price
+                }))}
+                onPinClick={() => {}} 
+             />
+             <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg text-xs font-bold text-slate-900 shadow-sm">
+                Your Saved Locations
+             </div>
+          </div>
+        )}
 
         {/* Content Tabs */}
         <Tabs defaultValue="all" className="w-full">
@@ -195,11 +246,12 @@ export default function Dashboard() {
                 <p className="text-slate-500 mb-8 max-w-sm mx-auto">
                    Use the Itinerary Wizard to plan your next stay in Medellín.
                 </p>
-                <Link to="/itinerary">
-                  <Button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-8">
-                    Start Planning
-                  </Button>
-                </Link>
+                <Button 
+                   onClick={openCreateTrip}
+                   className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-8"
+                >
+                   Start Planning
+                </Button>
              </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -85,6 +85,7 @@ export interface UIState {
   viewMode: 'MAP' | 'LIST' | 'SPLIT';
   activeResultId: string | null; // For highlighting on map/list
   isChatOpen: boolean;
+  isCreateTripOpen: boolean; // New: Controls the Trip Wizard Modal
 }
 
 // --- 5. AI Actions/Events ---
@@ -95,7 +96,8 @@ export type AIActionType =
   | 'SET_RESULTS' 
   | 'NAVIGATE_TO_STEP' 
   | 'TOGGLE_VIEW_MODE'
-  | 'SELECT_RESULT';
+  | 'SELECT_RESULT'
+  | 'OPEN_CREATE_TRIP';
 
 export interface AIEvent {
   type: AIActionType;
@@ -117,8 +119,6 @@ export interface WizardContextType {
   setUI: (ui: Partial<UIState>) => void;
   handleAIEvent: (event: AIEvent) => void;
   resetWizard: () => void;
-  
-  // Favorites
-  savedIds: string[];
-  toggleSaved: (id: string) => void;
+  openCreateTrip: () => void;
+  closeCreateTrip: () => void;
 }

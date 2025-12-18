@@ -139,7 +139,7 @@ export const FilterWizard = ({ onComplete }: FilterWizardProps) => {
             {currentStep.type === 'SLIDER' && (
                <div className="px-4 py-8 space-y-6">
                  <Slider 
-                   defaultValue={[filters.budget.max]} 
+                   value={[filters.budget.max]} 
                    max={currentStep.max || 1000} 
                    min={currentStep.min || 0}
                    step={10}

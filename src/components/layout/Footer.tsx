@@ -34,11 +34,12 @@ export function Footer() {
           <div>
             <h3 className="text-amber-400 font-bold text-sm tracking-widest uppercase mb-6">Discover</h3>
             <ul className="space-y-4 text-sm">
-              <li><Link to="/map" className="hover:text-white transition-colors">Map Explorer</Link></li>
-              <li><Link to="/concierge" className="hover:text-white transition-colors">AI Concierge</Link></li>
-              <li><Link to="/experiences/medellin" className="hover:text-white transition-colors">Events & Dining</Link></li>
-              <li><Link to="/real-estate" className="hover:text-white transition-colors">Real Estate & Stays</Link></li>
-              <li><Link to="/itinerary" className="hover:text-white transition-colors">Plan a Trip</Link></li>
+              <li><Link to="/explore" className="hover:text-white transition-colors">Explore Map</Link></li>
+              <li><Link to="/ai" className="hover:text-white transition-colors">AI Concierge</Link></li>
+              <li><Link to="/explore" className="hover:text-white transition-colors">Events</Link></li>
+              <li><Link to="/dashboard" className="hover:text-white transition-colors font-medium text-emerald-400">Dashboard</Link></li>
+              <li><Link to="/real-estate" className="hover:text-white transition-colors">Luxury Properties</Link></li>
+              <li><Link to="/itineraries" className="hover:text-white transition-colors">Curated Itineraries</Link></li>
             </ul>
           </div>
 
@@ -46,12 +47,11 @@ export function Footer() {
           <div>
             <h3 className="text-amber-400 font-bold text-sm tracking-widest uppercase mb-6">Company</h3>
             <ul className="space-y-4 text-sm">
-              <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
               <li><Link to="/how-it-works" className="hover:text-white transition-colors">How it Works</Link></li>
-              <li><Link to="/concierge" className="hover:text-white transition-colors">Contact Concierge</Link></li>
+              <li><Link to="/profile" className="hover:text-white transition-colors">My Profile</Link></li>
+              <li><Link to="/collections" className="hover:text-white transition-colors">Collections</Link></li>
               <li><Link to="/style-guide" className="hover:text-white transition-colors">Design System</Link></li>
-              <li><Link to="/careers" className="hover:text-white transition-colors">Careers</Link></li>
-              <li><Link to="/legal" className="hover:text-white transition-colors">Legal & Privacy</Link></li>
+              <li><Link to="/architecture" className="hover:text-white transition-colors text-slate-500">Architecture</Link></li>
             </ul>
           </div>
 

@@ -16,14 +16,18 @@ import WizardFlow from './pages/WizardFlow';
 import { AIProvider } from './context/AIContext';
 import { WizardProvider } from './context/WizardContext';
 import { ChatOverlay } from './components/wizard/ChatOverlay';
+import { AIWizardBridge } from './components/ai/AIWizardBridge';
 
 import { AppShell } from './components/layout/AppShell';
 
 import RestaurantDetailPage from './pages/RestaurantDetail';
 import EventDetailPage from './pages/EventDetail';
 import StyleGuidePage from './pages/StyleGuide';
-import ArchitecturePage from './pages/Architecture';
+import ArchitecturePage from './pages/Architecture'; // Internal Docs
+import HowItWorksPage from './pages/HowItWorks'; // Public Page
 import Dashboard from './pages/Dashboard';
+import TripDiscoveryDashboard from './pages/TripDiscoveryDashboard';
+import ExplorePage from './pages/ExplorePage';
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -64,15 +68,26 @@ function App() {
             <Route path="/itinerary" element={<ItineraryWizard />} />
             <Route path="/itinerary/new" element={<ItineraryWizard />} />
             
-            {/* Design System */}
+            {/* Design System & Info */}
             <Route path="/style-guide" element={<StyleGuidePage />} />
-            <Route path="/how-it-works" element={<ArchitecturePage />} />
+            <Route path="/architecture" element={<ArchitecturePage />} />
+            <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
+
+            {/* New Routes Alias */}
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/ai" element={<Concierge />} />
+            <Route path="/itineraries" element={<Dashboard />} />
+            <Route path="/events" element={<ExplorePage />} />
+            <Route path="/collections" element={<ExplorePage />} />
+            <Route path="/trip/:id" element={<TripDiscoveryDashboard />} />
+            <Route path="/profile" element={<Dashboard />} />
 
             {/* 404 Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ChatOverlay />
+          <AIWizardBridge />
         </AppShell>
         </WizardProvider>
       </AIProvider>
