@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import { PlaceCard } from '../../components/explore/PlaceCard';
+import { motion } from 'motion/react';
+import { ArrowLeft, Heart, Search, Filter, MapPin, Grid3x3, List, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
+import { Badge } from '../../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { Search, SlidersHorizontal, Plus } from 'lucide-react';
-import { cn } from '../../components/ui/utils';
+import { PlaceCard } from '../../components/explore/PlaceCard';
+import { PlaceDetailDrawer } from '../../components/explore/PlaceDetailDrawer';
 import { useTrip } from '../../context/TripContext';
+import { toast } from 'sonner@2.0.3';
+import { cn } from '../../components/ui/utils';
 
 // --- Mock Data for Saved Places (Synced with TripContext) ---
 const SAVED_PLACES = [
@@ -14,33 +19,39 @@ const SAVED_PLACES = [
     title: 'Elcielo Hotel & Restaurant',
     category: 'Restaurants',
     rating: 4.9,
+    reviews: '324',
     price: '$$$$',
     distance: '0.2 mi',
     image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800',
     aiHint: 'Perfect for your anniversary dinner.',
-    isSaved: true
+    isSaved: true,
+    tags: ['Fine Dining', 'Colombian', 'Romantic']
   },
   {
     id: 's1', // Matches TripContext
     title: 'The Click Clack Hotel',
     category: 'Stays',
     rating: 4.8,
+    reviews: '512',
     price: '$180/night',
     distance: '0.1 mi',
     image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=800',
     aiHint: 'You liked the rooftop pool concept.',
-    isSaved: true
+    isSaved: true,
+    tags: ['Luxury', 'Rooftop Pool', 'El Poblado']
   },
   {
     id: 'x1', // Matches TripContext (Comuna 13)
     title: 'Comuna 13 Graffiti Tour',
     category: 'Things to Do',
     rating: 4.7,
+    reviews: '892',
     price: '$10',
     distance: '4.0 mi',
     image: 'https://images.unsplash.com/photo-1583531352515-8884af319dc1?q=80&w=800',
     aiHint: 'Good for a rainy afternoon.',
-    isSaved: true
+    isSaved: true,
+    tags: ['Culture', 'Street Art', 'Local Experience']
   }
 ];
 
@@ -52,9 +63,41 @@ const COLLECTIONS = [
 export default function SavedPlacesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
+  const [selectedPlace, setSelectedPlace] = useState<any>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [savedPlaceIds, setSavedPlaceIds] = useState<string[]>(
+    SAVED_PLACES.map(p => p.id)
+  );
   const { addToTrip } = useTrip();
 
   const FILTERS = ['All', 'Stays', 'Restaurants', 'Things to Do', 'Activities'];
+
+  const navigate = useNavigate();
+
+  const handlePlaceClick = (place: any) => {
+    setSelectedPlace(place);
+    setIsDetailOpen(true);
+  };
+
+  const handleToggleSave = (placeId: string) => {
+    setSavedPlaceIds(prev => 
+      prev.includes(placeId) 
+        ? prev.filter(id => id !== placeId)
+        : [...prev, placeId]
+    );
+    toast.success(savedPlaceIds.includes(placeId) ? 'Removed from saved' : 'Added to saved');
+  };
+
+  const handleAddToTrip = (place: any) => {
+    const type = place.category === 'Stays' ? 'stay' : 
+                  place.category === 'Restaurants' ? 'event' : 'experience';
+    addToTrip(place as any, type);
+  };
+
+  const handleAskAI = () => {
+    toast.info('Opening AI Concierge...');
+    // Could navigate to concierge or open modal
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-white">
@@ -132,13 +175,12 @@ export default function SavedPlacesPage() {
                     key={place.id}
                     {...place}
                     layout="vertical"
-                    onClick={() => {}} // TODO: Open Detail
+                    onClick={() => handlePlaceClick(place)} // TODO: Open Detail
                     onAdd={(e) => { 
                         e.stopPropagation(); 
-                        const type = place.category === 'Stays' ? 'stay' : place.category === 'Restaurants' ? 'event' : 'experience';
-                        addToTrip(place as any, type);
+                        handleAddToTrip(place);
                     }}
-                    onToggleSave={(e) => { e.stopPropagation(); console.log("Unsave"); }}
+                    onToggleSave={(e) => { e.stopPropagation(); handleToggleSave(place.id); }}
                   />
                 ))}
                 
@@ -179,6 +221,20 @@ export default function SavedPlacesPage() {
 
         </div>
       </div>
+
+      {/* Place Detail Drawer */}
+      <PlaceDetailDrawer
+        place={selectedPlace}
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        isSaved={selectedPlace ? savedPlaceIds.includes(selectedPlace.id) : false}
+        onToggleSave={() => {
+          if (selectedPlace) {
+            handleToggleSave(selectedPlace.id);
+          }
+        }}
+        onAskAI={handleAskAI}
+      />
     </div>
   );
 }

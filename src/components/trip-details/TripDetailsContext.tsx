@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner@2.0.3';
-import { optimizeByProximity, detectConflicts, autoScheduleTimes, generateSmartRecommendations, WeatherCondition, getWeatherSuggestions } from '../../utils/aiAutomation';
+import { checkTimeOverlap, parseTime, parseDuration, formatTime, addDuration } from '../../utils/time';
+import { sortByProximity, calculateDistance } from '../../utils/distance';
+import type { Location } from '../../utils/distance';
 
 // --- TYPES ---
 export type TripItemType = 'logistics' | 'food' | 'activity' | 'stay';
@@ -15,6 +17,8 @@ export interface TripItem {
   image?: string;
   status?: 'planned' | 'booked' | 'confirmed';
   cost?: number;
+  location_lat?: number;
+  location_lng?: number;
 }
 
 export interface TripDay {
@@ -23,19 +27,30 @@ export interface TripDay {
   items: TripItem[];
 }
 
+export interface Conflict {
+  item1: string;
+  item2: string;
+  overlap: string;
+  dayIndex: number;
+}
+
 interface TripDetailsContextType {
   // State
   days: TripDay[];
   activePanel: string | null;
   isChatOpen: boolean;
-  conflicts: string[];
+  conflicts: Conflict[];
   recommendations: string[];
   
   // Actions
   setActivePanel: (panel: string | null) => void;
   toggleChat: () => void;
   addItemToDay: (dayIndex: number, item: Omit<TripItem, 'id'>) => void;
+  updateItem: (dayIndex: number, itemId: string, updates: Partial<TripItem>) => void;
+  deleteItem: (dayIndex: number, itemId: string) => void;
   moveItem: (fromDay: number, toDay: number, itemId: string) => void;
+  addDay: () => void;
+  removeDay: (dayIndex: number) => void;
   autoGenerateTrip: () => void;
   optimizeItinerary: () => void;
   autoScheduleDay: (dayIndex: number) => void;
@@ -91,7 +106,7 @@ export function TripDetailsProvider({ children, tripId }: { children: ReactNode,
 
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false); // Mobile toggle mainly
-  const [conflicts, setConflicts] = useState<string[]>([]);
+  const [conflicts, setConflicts] = useState<Conflict[]>([]);
   const [recommendations, setRecommendations] = useState<string[]>([]);
 
   // Persist to LocalStorage
@@ -131,6 +146,41 @@ export function TripDetailsProvider({ children, tripId }: { children: ReactNode,
     toast.success(`Added ${item.title} to Day ${dayIndex + 1}`);
   };
 
+  const updateItem = (dayIndex: number, itemId: string, updates: Partial<TripItem>) => {
+    setDays(prev => {
+        const newDays = [...prev];
+        const day = newDays[dayIndex];
+        if (!day) return prev;
+        
+        const itemIndex = day.items.findIndex(i => i.id === itemId);
+        if (itemIndex === -1) return prev;
+        
+        const item = day.items[itemIndex];
+        const updatedItem = { ...item, ...updates };
+        
+        day.items[itemIndex] = updatedItem;
+        return newDays;
+    });
+    
+    toast.success("Item updated");
+  };
+
+  const deleteItem = (dayIndex: number, itemId: string) => {
+    setDays(prev => {
+        const newDays = [...prev];
+        const day = newDays[dayIndex];
+        if (!day) return prev;
+        
+        const itemIndex = day.items.findIndex(i => i.id === itemId);
+        if (itemIndex === -1) return prev;
+        
+        day.items.splice(itemIndex, 1);
+        return newDays;
+    });
+    
+    toast.success("Item deleted");
+  };
+
   const moveItem = (fromDayIndex: number, toDayIndex: number, itemId: string) => {
     setDays(prev => {
         const newDays = [...prev]; // Shallow copy of array
@@ -161,6 +211,30 @@ export function TripDetailsProvider({ children, tripId }: { children: ReactNode,
     });
     
     // toast.success("Item moved");
+  };
+
+  const addDay = () => {
+    setDays(prev => {
+      const newDays = [...prev];
+      const lastDay = newDays[newDays.length - 1];
+      const newDay: TripDay = {
+        day: lastDay.day + 1,
+        date: `Day ${lastDay.day + 1}`,
+        items: []
+      };
+      newDays.push(newDay);
+      return newDays;
+    });
+    toast.success("Added a new day to your itinerary.");
+  };
+
+  const removeDay = (dayIndex: number) => {
+    setDays(prev => {
+      const newDays = [...prev];
+      newDays.splice(dayIndex, 1);
+      return newDays;
+    });
+    toast.success("Removed a day from your itinerary.");
   };
 
   const autoGenerateTrip = () => {
@@ -243,7 +317,7 @@ export function TripDetailsProvider({ children, tripId }: { children: ReactNode,
   };
 
   const optimizeItinerary = () => {
-    const optimizedDays = optimizeByProximity(days);
+    const optimizedDays = sortByProximity(days);
     setDays(optimizedDays);
     toast.success("AI Concierge: I've optimized your itinerary for proximity.");
   };
@@ -259,7 +333,24 @@ export function TripDetailsProvider({ children, tripId }: { children: ReactNode,
   };
 
   const checkConflicts = () => {
-    const detectedConflicts = detectConflicts(days);
+    const detectedConflicts: Conflict[] = [];
+    days.forEach((day, dayIndex) => {
+      day.items.forEach((item1, index1) => {
+        day.items.forEach((item2, index2) => {
+          if (index1 < index2 && item1.time && item2.time && item1.duration && item2.duration) {
+            const overlap = checkTimeOverlap(parseTime(item1.time), parseDuration(item1.duration), parseTime(item2.time), parseDuration(item2.duration));
+            if (overlap) {
+              detectedConflicts.push({
+                item1: item1.title,
+                item2: item2.title,
+                overlap: overlap,
+                dayIndex: dayIndex
+              });
+            }
+          }
+        });
+      });
+    });
     setConflicts(detectedConflicts);
     toast.success("AI Concierge: I've checked for conflicts in your itinerary.");
   };
@@ -288,8 +379,8 @@ export function TripDetailsProvider({ children, tripId }: { children: ReactNode,
   return (
     <TripDetailsContext.Provider value={{
       days, activePanel, isChatOpen, conflicts, recommendations,
-      setActivePanel, toggleChat, addItemToDay, moveItem, autoGenerateTrip,
-      optimizeItinerary, autoScheduleDay, checkConflicts, applyTemplate
+      setActivePanel, toggleChat, addItemToDay, updateItem, deleteItem, moveItem, addDay, removeDay,
+      autoGenerateTrip, optimizeItinerary, autoScheduleDay, checkConflicts, applyTemplate
     }}>
       {children}
     </TripDetailsContext.Provider>
@@ -303,3 +394,23 @@ export const useTripDetails = () => {
   }
   return context;
 };
+
+// Helper function to auto-schedule times for a day
+function autoScheduleTimes(day: TripDay): TripDay {
+  const newItems: TripItem[] = [];
+  let currentTime = '09:00 AM';
+
+  day.items.forEach(item => {
+    const newItem: TripItem = {
+      ...item,
+      time: currentTime
+    };
+    newItems.push(newItem);
+    currentTime = addDuration(currentTime, item.duration || '1h');
+  });
+
+  return {
+    ...day,
+    items: newItems
+  };
+}

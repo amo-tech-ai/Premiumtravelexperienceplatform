@@ -1,0 +1,77 @@
+erDiagram
+    auth_users ||--o| subscriptions : "has one"
+    auth_users ||--o{ invoices : "receives many"
+    auth_users ||--o| usage_limits : "has one"
+    auth_users ||--o{ billing_events : "generates many"
+    
+    plans ||--o{ subscriptions : "powers many"
+    subscriptions ||--o{ invoices : "generates many"
+    
+    subscriptions {
+        uuid id PK
+        uuid user_id FK "unique"
+        text stripe_customer_id "unique"
+        text stripe_subscription_id "unique"
+        uuid plan_id FK
+        text status "active|trialing|past_due|canceled|incomplete|incomplete_expired|unpaid"
+        timestamptz current_period_start
+        timestamptz current_period_end
+        boolean cancel_at_period_end
+        timestamptz canceled_at
+        timestamptz trial_start
+        timestamptz trial_end
+        jsonb metadata
+    }
+    
+    plans {
+        uuid id PK
+        text name "unique: Free|Pro|Enterprise"
+        text description
+        text stripe_price_id "unique"
+        text stripe_product_id "unique"
+        numeric price_usd
+        text interval "month|year"
+        jsonb features
+        jsonb limits "ai_runs_per_month, trips_max, collaborators_per_trip"
+        boolean is_active
+        integer sort_order
+    }
+    
+    usage_limits {
+        uuid id PK
+        uuid user_id FK "unique"
+        integer ai_runs_used
+        integer ai_runs_limit
+        integer trips_used
+        integer trips_limit
+        timestamptz reset_at
+        jsonb metadata
+    }
+    
+    invoices {
+        uuid id PK
+        uuid user_id FK
+        text stripe_invoice_id "unique"
+        text stripe_subscription_id
+        numeric amount_due
+        numeric amount_paid
+        text currency
+        text status "draft|open|paid|uncollectible|void"
+        text invoice_pdf
+        text hosted_invoice_url
+        timestamptz due_date
+        timestamptz paid_at
+        jsonb metadata
+    }
+    
+    billing_events {
+        uuid id PK
+        uuid user_id FK
+        text event_type
+        text stripe_event_id "unique"
+        text stripe_event_type
+        jsonb data
+        boolean processed
+        timestamptz processed_at
+        text error_message
+    }

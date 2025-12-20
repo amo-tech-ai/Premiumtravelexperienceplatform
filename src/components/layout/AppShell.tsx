@@ -9,6 +9,7 @@ import { ConciergeOverlay } from "../ai/ConciergeOverlay";
 import { TripCreateModal } from "../trip-wizard/TripCreateModal";
 import { Toaster } from "../ui/sonner";
 import { useLocation } from "react-router-dom";
+import { QuickAccessMenu } from "../navigation/QuickAccessMenu";
 
 interface AppShellProps {
   children: ReactNode;
@@ -52,6 +53,7 @@ export function AppShell({ children, className }: AppShellProps) {
       <ConciergeOverlay />
       <TripCreateModal />
       <BottomNav />
+      <QuickAccessMenu />
       <Toaster />
     </div>
   );

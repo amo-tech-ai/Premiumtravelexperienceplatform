@@ -7,6 +7,7 @@ import { useAI } from '../../context/AIContext';
 import { ResultsTabs, ViewMode } from './ResultsTabs';
 import { ResultsList } from './ResultsList';
 import { ResultsMap } from './ResultsMap';
+import { AgentStatusPanel } from './AgentStatusPanel';
 import { useNavigate } from 'react-router-dom';
 
 export const AIConcierge = () => {
@@ -45,16 +46,38 @@ export const AIConcierge = () => {
   const renderVisualContent = () => {
     if (!hasResults) {
       return (
-        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 p-8 text-center">
-           <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-6">
-             <Search className="w-8 h-8 opacity-20" />
-           </div>
-           <h3 className="text-xl font-serif text-slate-600 mb-2">Ready to Explore?</h3>
-           <p className="font-light max-w-xs">
-              {intent === 'REAL_ESTATE' 
-                ? 'Ask about properties to see exclusive listings on the map.' 
-                : 'Ask for recommendations to see curated spots on the map.'}
-           </p>
+        <div className="w-full h-full flex flex-col items-center justify-start p-8 overflow-y-auto">
+          {/* Welcome Section */}
+          <div className="w-full max-w-2xl text-center mb-8">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mb-6 mx-auto">
+              <Search className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="text-2xl font-serif text-slate-800 mb-2">AI-Powered Travel Assistant</h3>
+            <p className="text-slate-600 mb-6 max-w-md mx-auto">
+              6 intelligent agents ready to help you discover, plan, and optimize your trip
+            </p>
+          </div>
+
+          {/* Agent Status Panel */}
+          <div className="w-full max-w-2xl">
+            <AgentStatusPanel onTestAgent={(agentId, query) => {
+              setInput(query);
+              // Auto-send after a short delay to show the query
+              setTimeout(() => {
+                sendMessage(query);
+              }, 100);
+            }} />
+          </div>
+
+          {/* Quick Tips */}
+          <div className="w-full max-w-2xl mt-8 p-6 bg-blue-50 rounded-xl border border-blue-100">
+            <h4 className="font-semibold text-blue-900 mb-3">💡 Quick Tips</h4>
+            <ul className="space-y-2 text-sm text-blue-800">
+              <li>• Click any agent above to see example queries</li>
+              <li>• All agents work together to give you the best recommendations</li>
+              <li>• Currently using mock data - connect Gemini for AI-powered responses</li>
+            </ul>
+          </div>
         </div>
       );
     }

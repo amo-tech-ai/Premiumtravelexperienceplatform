@@ -1,0 +1,79 @@
+erDiagram
+    auth_users ||--o{ saved_places : "saves many"
+    auth_users ||--o{ collections : "creates many"
+    auth_users ||--o{ collaborators : "collaborates on many"
+    auth_users ||--o{ votes : "casts many"
+    auth_users ||--o{ tags : "creates many"
+    
+    trips ||--o{ collaborators : "has many"
+    trips ||--o{ votes : "receives many"
+    
+    locations ||--o{ saved_places : "referenced by many"
+    
+    collections ||--o{ collection_items : "contains many"
+    saved_places ||--o{ collection_items : "belongs to many"
+    saved_places ||--o{ votes : "receives many"
+    
+    trip_items ||--o{ votes : "receives many"
+    
+    saved_places {
+        uuid id PK
+        uuid user_id FK
+        uuid location_id FK
+        text name
+        text category
+        text notes
+        numeric rating
+        boolean visited
+        date visited_date
+        jsonb photos
+        jsonb metadata
+    }
+    
+    collections {
+        uuid id PK
+        uuid user_id FK
+        text name
+        text description
+        text icon
+        text color
+        boolean is_public
+        jsonb metadata
+    }
+    
+    collection_items {
+        uuid id PK
+        uuid collection_id FK
+        uuid saved_place_id FK
+        integer order_index
+        text notes
+    }
+    
+    collaborators {
+        uuid id PK
+        uuid trip_id FK
+        uuid user_id FK
+        uuid invited_by FK
+        text role "owner|editor|viewer"
+        text status "pending|accepted|declined"
+        boolean can_edit
+        boolean can_invite
+    }
+    
+    votes {
+        uuid id PK
+        uuid trip_id FK
+        uuid trip_item_id FK
+        uuid saved_place_id FK
+        uuid user_id FK
+        text vote_type "up|down|favorite"
+    }
+    
+    tags {
+        uuid id PK
+        uuid user_id FK
+        text resource_type "trip|trip_item|saved_place|collection"
+        uuid resource_id
+        text tag_name
+        text color
+    }

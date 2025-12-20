@@ -1,0 +1,103 @@
+erDiagram
+    auth_users ||--o| whatsapp_accounts : "has one"
+    auth_users ||--o{ whatsapp_messages : "sends/receives many"
+    auth_users ||--o| notification_preferences : "has one"
+    auth_users ||--o{ automation_rules : "creates many"
+    auth_users ||--o{ scheduled_jobs : "has many"
+    auth_users ||--o{ delivery_logs : "generates many"
+    
+    whatsapp_accounts ||--o{ whatsapp_messages : "routes many"
+    
+    trips ||--o{ whatsapp_messages : "discussed in many"
+    trips ||--o{ scheduled_jobs : "triggers many"
+    
+    automation_rules ||--o{ scheduled_jobs : "spawns many"
+    
+    whatsapp_messages ||--o{ delivery_logs : "logged in many"
+    
+    whatsapp_accounts {
+        uuid id PK
+        uuid user_id FK "unique"
+        text phone_number "unique"
+        text country_code
+        boolean is_verified
+        text verification_code
+        timestamptz verification_expires_at
+        text opt_in_status "pending|opted_in|opted_out"
+        timestamptz opted_in_at
+        timestamptz opted_out_at
+        jsonb metadata
+    }
+    
+    whatsapp_messages {
+        uuid id PK
+        uuid user_id FK
+        uuid whatsapp_account_id FK
+        uuid trip_id FK
+        text direction "outbound|inbound"
+        text message_type "text|image|location|template"
+        text content
+        text media_url
+        text external_id "WhatsApp API message ID"
+        text status "pending|sent|delivered|read|failed"
+        timestamptz delivered_at
+        timestamptz read_at
+        text failed_reason
+        integer retry_count
+        jsonb metadata
+    }
+    
+    notification_preferences {
+        uuid id PK
+        uuid user_id FK "unique"
+        boolean trip_reminders
+        boolean booking_confirmations
+        boolean itinerary_updates
+        boolean budget_alerts
+        boolean ai_suggestions
+        boolean collaborator_updates
+        boolean marketing
+        boolean quiet_hours_enabled
+        time quiet_hours_start
+        time quiet_hours_end
+        text timezone
+    }
+    
+    automation_rules {
+        uuid id PK
+        uuid user_id FK
+        text name
+        text description
+        text trigger_type "trip_start|trip_end|booking_pending|budget_exceeded|schedule"
+        jsonb trigger_config
+        text action_type "send_whatsapp|send_email|run_ai_agent|update_trip"
+        jsonb action_config
+        boolean is_active
+        timestamptz last_triggered_at
+        jsonb metadata
+    }
+    
+    scheduled_jobs {
+        uuid id PK
+        uuid user_id FK
+        uuid automation_rule_id FK
+        uuid trip_id FK
+        text job_type
+        timestamptz scheduled_for
+        text status "pending|running|completed|failed|cancelled"
+        jsonb result
+        text error_message
+        timestamptz executed_at
+    }
+    
+    delivery_logs {
+        uuid id PK
+        uuid user_id FK
+        uuid whatsapp_message_id FK
+        text channel "whatsapp|email|push|sms"
+        text recipient
+        text status "sent|delivered|failed|bounced"
+        jsonb provider_response
+        text error_message
+        timestamptz delivered_at
+    }

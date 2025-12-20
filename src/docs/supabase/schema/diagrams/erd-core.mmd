@@ -1,0 +1,119 @@
+erDiagram
+    auth_users ||--o| profiles : "has one"
+    auth_users ||--o{ trips : "owns many"
+    auth_users ||--o{ trip_items : "creates many"
+    auth_users ||--o| user_settings : "has one"
+    auth_users ||--o{ activity_log : "generates many"
+    
+    trips ||--o{ trip_items : "contains many"
+    locations ||--o{ trip_items : "referenced by many"
+    
+    auth_users {
+        uuid id PK "from Supabase Auth"
+        text email
+        timestamptz created_at
+    }
+    
+    profiles {
+        uuid id PK "FK to auth.users"
+        text email "cached from auth"
+        text full_name
+        text avatar_url
+        jsonb preferences
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    trips {
+        uuid id PK
+        uuid user_id FK "owner"
+        text name
+        text destination
+        text description
+        date start_date
+        date end_date
+        text status "planning|booked|in_progress|completed|cancelled|archived"
+        numeric budget
+        text currency "default USD"
+        integer travelers "default 1"
+        text cover_image_url
+        jsonb metadata
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    trip_items {
+        uuid id PK
+        uuid trip_id FK
+        uuid user_id FK "item creator"
+        uuid location_id FK "optional"
+        text name
+        text category "accommodation|activity|restaurant|transport|flight|other"
+        text description
+        integer day_number "1-indexed"
+        time start_time
+        time end_time
+        integer duration_minutes
+        integer order_index "display order within day"
+        numeric price
+        text currency
+        text booking_status "not_booked|pending|confirmed|cancelled"
+        text booking_reference
+        text address
+        numeric latitude
+        numeric longitude
+        text website_url
+        text phone
+        text notes
+        jsonb metadata
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    locations {
+        uuid id PK
+        text google_place_id "unique, optional"
+        text name
+        text category "accommodation|restaurant|attraction|transport|shopping|other"
+        text address
+        text city
+        text country
+        numeric latitude "required"
+        numeric longitude "required"
+        numeric rating "0-5 stars"
+        integer price_level "1-4 ($-$$$$)"
+        text phone
+        text website_url
+        jsonb opening_hours
+        jsonb photos "array of image URLs"
+        jsonb metadata
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    user_settings {
+        uuid id PK
+        uuid user_id FK "unique, one-to-one"
+        text theme "light|dark|system"
+        text language "default en"
+        text timezone "default UTC"
+        text currency "default USD"
+        text distance_unit "km|mi"
+        boolean notifications_enabled "default true"
+        boolean email_notifications "default true"
+        boolean push_notifications "default true"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    activity_log {
+        uuid id PK
+        uuid user_id FK
+        text action "created|updated|deleted"
+        text resource_type "table name"
+        uuid resource_id "affected record"
+        jsonb metadata "additional context"
+        inet ip_address
+        text user_agent
+        timestamptz created_at
+    }

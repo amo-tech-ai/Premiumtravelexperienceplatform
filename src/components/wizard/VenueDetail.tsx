@@ -5,7 +5,8 @@ import {
   SheetHeader, 
   SheetFooter, 
   SheetTitle, 
-  SheetClose 
+  SheetClose,
+  SheetDescription
 } from '../ui/sheet';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -107,6 +108,9 @@ export const VenueDetail = ({ venue, isOpen, onClose }: VenueDetailProps) => {
             <SheetTitle className="text-2xl md:text-3xl font-serif text-white leading-tight">
               {venue.name}
             </SheetTitle>
+            <SheetDescription className="sr-only">
+              Detailed information about {venue.name} including ratings, reviews, location, and booking options.
+            </SheetDescription>
             <div className="flex items-center gap-1 text-white/90 text-sm mt-1">
               <MapPin className="w-3.5 h-3.5" />
               <span>{venue.location.neighborhood}</span>

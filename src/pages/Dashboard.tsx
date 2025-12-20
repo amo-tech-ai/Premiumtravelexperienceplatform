@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useAI } from '../context/AIContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -10,6 +10,8 @@ import { Button } from '../components/ui/button';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { cn } from '../components/ui/utils';
 import { useWizard } from '../context/WizardContext';
+import { CreateTripModal } from '../components/trip/CreateTripModal';
+import { formatDateRange } from '../utils/formatting';
 
 // Helper for Empty State
 const EmptyTripsState = ({ onCreate }: { onCreate: () => void }) => (
@@ -84,18 +86,40 @@ const TripCard = ({ item, onRemove }: { item: any, onRemove: (id: string) => voi
 export default function Dashboard() {
   const { savedItems, removeItem } = useAI();
   const { openCreateTrip } = useWizard();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [trips, setTrips] = useState<any[]>([]);
+  
+  // Load trips from localStorage
+  useEffect(() => {
+    const savedTrips = JSON.parse(localStorage.getItem('trips') || '[]');
+    setTrips(savedTrips);
+  }, []);
   
   // Filter for itineraries/trips
   // In a real app, this would be a separate API call or distinct state
   // For now we filter savedItems or use mocks if empty to demonstrate
   const itineraries = savedItems.filter(i => i.type === 'itinerary');
 
+  // Combine real trips with saved items
+  const allTrips = [...trips, ...itineraries];
+  
   // MOCK TRIPS for Demo if none exist
-  const hasTrips = itineraries.length > 0; 
-  const displayTrips = hasTrips ? itineraries : [
+  const hasTrips = allTrips.length > 0; 
+  const displayTrips = hasTrips ? allTrips : [
      { id: 'mock1', title: 'Medellín Design Week', type: 'itinerary', image: 'https://images.unsplash.com/photo-1599582106603-946654a9388c?q=80', dates: 'Jan 15 - 20', days: 5 },
      { id: 'mock2', title: 'Coffee Region Tour', type: 'itinerary', image: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80', dates: 'Feb 10 - 12', days: 3 }
   ];
+  
+  const handleCreateTrip = () => {
+    setShowCreateModal(true);
+  };
+  
+  const handleCloseModal = () => {
+    setShowCreateModal(false);
+    // Reload trips after creation
+    const savedTrips = JSON.parse(localStorage.getItem('trips') || '[]');
+    setTrips(savedTrips);
+  };
 
   return (
     <div className="min-h-screen bg-[#FAFAF9] py-12 pb-20">
@@ -110,7 +134,7 @@ export default function Dashboard() {
             </p>
           </div>
           <Button 
-              onClick={openCreateTrip}
+              onClick={handleCreateTrip}
               className="bg-emerald-900 text-white hover:bg-emerald-800 shadow-lg shadow-emerald-900/10 px-6 h-12 rounded-xl text-base"
           >
               <Plus className="w-5 h-5 mr-2" />
@@ -120,7 +144,7 @@ export default function Dashboard() {
 
         {/* Trips Grid */}
         {displayTrips.length === 0 ? (
-           <EmptyTripsState onCreate={openCreateTrip} />
+           <EmptyTripsState onCreate={handleCreateTrip} />
         ) : (
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {displayTrips.map(trip => (
@@ -129,7 +153,7 @@ export default function Dashboard() {
               
               {/* Add New Card */}
               <button 
-                 onClick={openCreateTrip}
+                 onClick={handleCreateTrip}
                  className="group min-h-[300px] rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-500/50 hover:bg-emerald-50/50 transition-all flex flex-col items-center justify-center text-slate-400 hover:text-emerald-700"
               >
                  <div className="w-16 h-16 rounded-full bg-slate-100 group-hover:bg-white group-hover:shadow-md flex items-center justify-center mb-4 transition-all">
@@ -140,6 +164,9 @@ export default function Dashboard() {
            </div>
         )}
       </div>
+      
+      {/* Create Trip Modal */}
+      <CreateTripModal open={showCreateModal} onClose={handleCloseModal} />
     </div>
   );
 }

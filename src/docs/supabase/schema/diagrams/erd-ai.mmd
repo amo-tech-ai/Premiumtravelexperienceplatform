@@ -1,0 +1,76 @@
+erDiagram
+    auth_users ||--o{ ai_runs : "executes many"
+    auth_users ||--o{ ai_messages : "sends many"
+    auth_users ||--o{ ai_memory : "has many"
+    auth_users ||--o{ ai_feedback : "provides many"
+    
+    ai_agents ||--o{ ai_runs : "powers many"
+    
+    trips ||--o{ ai_runs : "analyzed by many"
+    trips ||--o{ ai_messages : "discussed in many"
+    
+    ai_runs ||--o{ ai_messages : "generates many"
+    ai_runs ||--o{ ai_feedback : "receives many"
+    
+    saved_places ||--o{ ai_runs : "referenced in many"
+    
+    ai_agents {
+        uuid id PK
+        text name "unique: explore|itinerary|budget|research|proactive|collaboration"
+        text description
+        text version
+        text model "gpt-4, gpt-3.5-turbo, etc"
+        text system_prompt
+        numeric temperature
+        integer max_tokens
+        boolean is_active
+        jsonb metadata
+    }
+    
+    ai_runs {
+        uuid id PK
+        uuid user_id FK
+        uuid agent_id FK
+        uuid trip_id FK "optional"
+        uuid saved_place_id FK "optional"
+        text input_text
+        text output_text
+        text status "pending|running|completed|failed|cancelled"
+        text model_used
+        integer tokens_prompt
+        integer tokens_completion
+        integer tokens_total
+        numeric cost_usd
+        integer latency_ms
+        text error_message
+        jsonb metadata
+    }
+    
+    ai_messages {
+        uuid id PK
+        uuid user_id FK
+        uuid ai_run_id FK "optional"
+        uuid trip_id FK "optional"
+        text role "user|assistant|system"
+        text content
+        jsonb metadata
+    }
+    
+    ai_memory {
+        uuid id PK
+        uuid user_id FK
+        text memory_type "preference|fact|feedback|context"
+        text key
+        jsonb value
+        numeric confidence "0-1"
+        text source "which agent created"
+        timestamptz expires_at
+    }
+    
+    ai_feedback {
+        uuid id PK
+        uuid user_id FK
+        uuid ai_run_id FK
+        text feedback_type "thumbs_up|thumbs_down|helpful|not_helpful|incorrect|offensive"
+        text comment
+    }

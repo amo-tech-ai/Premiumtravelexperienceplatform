@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, Users, MapPin, MoreHorizontal, Plus, GripVertical, Clock, Coffee, CheckCircle, Share, Sparkles, DollarSign, Wand2, TrendingUp, BarChart3 } from 'lucide-react';
+import { Calendar, Users, MapPin, MoreHorizontal, Plus, GripVertical, Clock, Coffee, CheckCircle, Share, Sparkles, DollarSign, Wand2, TrendingUp, BarChart3, Edit2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
@@ -11,7 +11,9 @@ import { BookingFlow } from '../booking/BookingFlow';
 import { toast } from 'sonner@2.0.3';
 import { motion, AnimatePresence } from 'motion/react';
 import { TripStatistics } from './TripStatistics';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '../ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
+import { EditItemModal } from '../trip/EditItemModal';
+import type { TripItem } from './TripDetailsContext';
 
 // Mock Trip Data (Fallback)
 const DEFAULT_TRIP = {
@@ -24,8 +26,8 @@ const DEFAULT_TRIP = {
 };
 
 // --- DRAGGABLE ITEM ---
-const DraggableTripItem = React.forwardRef<HTMLDivElement, { item: any, dayIndex: number }>(
-  ({ item, dayIndex }, ref) => {
+const DraggableTripItem = React.forwardRef<HTMLDivElement, { item: TripItem, dayIndex: number, onEdit: () => void }>(
+  ({ item, dayIndex, onEdit }, ref) => {
     const [{ isDragging }, drag] = useDrag(() => ({
       type: 'TRIP_ITEM',
       item: { id: item.id, fromDayIndex: dayIndex, type: 'TRIP_ITEM' },
@@ -68,8 +70,16 @@ const DraggableTripItem = React.forwardRef<HTMLDivElement, { item: any, dayIndex
             <div className="flex items-start justify-between">
                <h3 className="font-semibold text-slate-800">{item.title}</h3>
                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                  <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-slate-900">
-                      <MoreHorizontal className="w-4 h-4" />
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 text-slate-400 hover:text-emerald-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit();
+                    }}
+                  >
+                      <Edit2 className="w-3.5 h-3.5" />
                   </Button>
                   <GripVertical className="w-4 h-4 text-slate-300" />
                </div>
@@ -149,11 +159,12 @@ const DroppableDay = ({ day, dayIndex, children, onDrop }: { day: any, dayIndex:
 };
 
 export function ItineraryFeed() {
-  const { days, addItemToDay, moveItem, autoGenerateTrip } = useTripDetails();
+  const { days, addItemToDay, moveItem, autoGenerateTrip, updateItem, deleteItem } = useTripDetails();
   const { id } = useParams<{ id: string }>();
   const { savedItems } = useAI();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isBooked, setIsBooked] = useState(false);
+  const [editingItem, setEditingItem] = useState<{ item: TripItem; dayIndex: number } | null>(null);
   
   // Find trip metadata
   const tripItem = savedItems.find(i => i.id === id);
@@ -334,7 +345,7 @@ export function ItineraryFeed() {
                 <AnimatePresence mode="popLayout">
                   {day.items.length > 0 ? (
                     day.items.map((item) => (
-                      <DraggableTripItem key={item.id} item={item} dayIndex={dayIndex} />
+                      <DraggableTripItem key={item.id} item={item} dayIndex={dayIndex} onEdit={() => setEditingItem({ item, dayIndex })} />
                     ))
                   ) : (
                     <motion.div 
@@ -370,6 +381,9 @@ export function ItineraryFeed() {
         <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
           <SheetHeader>
             <SheetTitle>Trip Statistics & Budget</SheetTitle>
+            <SheetDescription>
+              View detailed statistics and budget breakdown for your trip.
+            </SheetDescription>
           </SheetHeader>
           <div className="overflow-y-auto h-full pb-20 pt-4">
             <TripStatistics 
@@ -379,6 +393,23 @@ export function ItineraryFeed() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Edit Item Modal */}
+      {editingItem && (
+        <EditItemModal
+          open={true}
+          item={editingItem.item}
+          onClose={() => setEditingItem(null)}
+          onSave={(updated) => {
+            updateItem(editingItem.dayIndex, updated.id, updated);
+            setEditingItem(null);
+          }}
+          onDelete={(id) => {
+            deleteItem(editingItem.dayIndex, id);
+            setEditingItem(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AIEvent } from '../types/wizard';
+import { getGeminiClient } from '../lib/ai/gemini-client';
+import { getEventBus } from '../lib/ai/event-bus';
 
 export type AIIntent = 'GENERAL' | 'REAL_ESTATE' | 'EVENTS' | 'ITINERARY' | 'DINING' | 'STAYS' | 'TOURIST' | 'LOCATIONS' | 'GUIDES' | 'DISCOVERY';
 

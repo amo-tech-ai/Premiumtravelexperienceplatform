@@ -9,7 +9,7 @@ import { useTrip } from '../../context/TripContext';
 import { useAI } from '../../context/AIContext';
 import { useDrag } from 'react-dnd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { AIActionsPanel } from './AIActionsPanel';
@@ -218,6 +218,7 @@ export function TripSidebar({ collapsed = false, onToggle }: TripSidebarProps) {
                   <DialogContent>
                       <DialogHeader>
                           <DialogTitle>Add Manual Booking</DialogTitle>
+                          <DialogDescription>Enter the details of your booking to add it to your trip.</DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                           <div className="space-y-2">
