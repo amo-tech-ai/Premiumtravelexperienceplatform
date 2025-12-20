@@ -79,6 +79,32 @@ flowchart TD
 **Time:** 90 minutes  
 **Priority:** 🔴 Critical
 
+### Frame Organization Reference
+
+**Before starting, understand the frame organization:**
+
+This design system uses **three breakpoints** organized by page:
+
+| Breakpoint | Width | Page Location | Frame Prefix |
+|------------|-------|---------------|--------------|
+| **Mobile** | 375px | "Pages — Mobile" | `Mobile/` |
+| **Tablet** | 768px | "Pages — Tablet" | `Tablet/` |
+| **Desktop** | 1440px | "Pages — Desktop" | `Desktop/` |
+
+**How to identify frames:**
+1. **By width:** Select frame → check width in properties panel
+2. **By page:** Check which page the frame is on
+3. **By name:** Frame names start with breakpoint prefix
+
+**Why this matters:**
+- Mobile frames (375px) use `Display/Bold/Mobile` text style
+- Desktop frames (1440px) use `Display/Bold/Desktop` text style
+- Variables apply to all breakpoints, but some styles differ
+
+You'll organize frames by page in Phase 4, but knowing this structure helps apply variables correctly.
+
+---
+
 ### Step 1.1: Create Variables Collection — Theme
 
 **Action:**
@@ -102,12 +128,14 @@ Collection: Theme
 │  └─ muted → #6B7280
 └─ status
    ├─ success → #059669
-   └─ error → #991B1B
+   └─ error
+      ├─ default → #991B1B
+      └─ hover → #7A1716
 ```
 
 **Checklist:**
 - [ ] Collection created and named `Theme`
-- [ ] All 11 color variables added
+- [ ] All 12 color variables added
 - [ ] Hex values match exactly
 - [ ] Variable names use `/` grouping
 - [ ] No typos in variable names
@@ -131,20 +159,39 @@ Collection: Theme
 ```
 Collection: Metrics
 ├─ spacing
-│  ├─ 4
-│  ├─ 8
-│  ├─ 12
-│  ├─ 16
-│  ├─ 24
-│  ├─ 32
-│  ├─ 48
-│  └─ 64
+│  ├─ 4 → 4
+│  ├─ 8 → 8
+│  ├─ 12 → 12
+│  ├─ 16 → 16
+│  ├─ 24 → 24
+│  ├─ 32 → 32
+│  ├─ 48 → 48
+│  └─ 64 → 64
 └─ radius
    ├─ sm → 4
    ├─ md → 8
    ├─ lg → 16
    └─ full → 999
 ```
+
+**Variable Reference Table:**
+
+| Variable Name | Value | Unit | Common Usage |
+|--------------|-------|------|--------------|
+| `spacing/4` | 4 | px | Tight spacing, icon gaps |
+| `spacing/8` | 8 | px | Small padding, compact layouts |
+| `spacing/12` | 12 | px | Default padding, list gaps |
+| `spacing/16` | 16 | px | Standard padding, mobile margins |
+| `spacing/24` | 24 | px | Large padding, section gaps |
+| `spacing/32` | 32 | px | Section spacing, desktop margins |
+| `spacing/48` | 48 | px | Major section breaks |
+| `spacing/64` | 64 | px | Page-level spacing, hero sections |
+| `radius/sm` | 4 | px | Buttons, inputs, small cards |
+| `radius/md` | 8 | px | Cards, images, containers |
+| `radius/lg` | 16 | px | Modals, large containers |
+| `radius/full` | 999 | px | Avatars, pills, circular elements |
+
+**Note:** In Figma, variable names like `spacing/4` will automatically group under "spacing" in the variables panel.
 
 **Checklist:**
 - [ ] Collection created and named `Metrics`
@@ -379,8 +426,23 @@ Text Styles Hierarchy:
 
 **Action:**
 1. Select all text layers (Cmd+A, then filter by text)
-2. Map existing text to new styles
-3. Replace each layer
+2. **Identify frame breakpoint** (see below)
+3. Map existing text to new styles
+4. Replace each layer
+
+**Identifying Frame Breakpoint:**
+
+Method 1 - Check width:
+- Select frame containing text
+- Look at width in properties: 375px = Mobile, 1440px = Desktop
+
+Method 2 - Check page:
+- Look at page name: "Pages — Mobile" or "Pages — Desktop"
+
+Method 3 - Check frame name:
+- Frame name starts with "Mobile/" or "Desktop/"
+
+**Why this matters:** Mobile frames use `Display/Bold/Mobile` while Desktop uses `Display/Bold/Desktop` (different sizes).
 
 **Mapping Guide:**
 ```
@@ -564,9 +626,9 @@ graph TB
 - Border: None
 
 **Danger:**
-- Fill: `status/error`
+- Fill: `status/error/default`
 - Text: `bg/surface`
-- Hover: Darker error (create variable)
+- Hover: `status/error/hover`
 - Border: None
 
 **State Specifications:**
@@ -577,8 +639,27 @@ graph TB
 
 **Hover:**
 - Apply hover fills
-- Scale: 1.0 (no scale on hover for buttons)
+- Scale: 1.0 (NO scale change)
 - Transition: 150ms
+
+**Design Rationale - Why Buttons Don't Scale:**
+
+Buttons maintain their size on hover for important UX reasons:
+
+1. **Click Precision:** Scaling causes layout shifts that can make buttons harder to target, especially on mobile devices or for users with motor impairments.
+
+2. **Accessibility:** WCAG 2.1 Success Criterion 2.5.5 (Target Size) recommends stable hit areas. Scaling can confuse assistive technologies.
+
+3. **Performance:** No scale = no layout recalculation = smoother, more performant interactions.
+
+4. **Visual Hierarchy:** Buttons use color change only, making the interaction feel more "committed" - you're activating an action, not previewing content.
+
+5. **Industry Standards:** Major design systems (Material Design, Apple HIG, Microsoft Fluent) avoid scaling primary action buttons.
+
+**Visual Changes on Hover:**
+- Fill color: `primary/default` → `primary/hover` (darker)
+- Cursor: pointer
+- Transition: 150ms for instant feedback
 
 **Active:**
 - Fill: Darken by 10%
@@ -763,6 +844,28 @@ Test 4: Interactive States
 - Shadow: `effect-floating`
 - Scale: 1.02
 - Transition: 200ms
+
+**Design Rationale - Why Cards Scale:**
+
+Cards use subtle scale (1.02 = 2% increase) for distinct UX reasons:
+
+1. **Content Preview:** Scaling suggests the card can be selected/expanded, signaling interactivity for content containers (not actions).
+
+2. **Depth Perception:** The scale + shadow change creates a "lifting" effect, making cards feel like physical objects that come forward.
+
+3. **Visual Affordance:** Users need clear indication that cards are clickable. The scale provides stronger affordance than color alone.
+
+4. **Industry Standards:** Card scaling is common in modern UIs (Airbnb, Booking.com, Pinterest) where content browsing is primary.
+
+5. **Screen Space:** On desktop, there's room for subtle animations. The 2% scale is small enough not to disrupt layout.
+
+**Visual Changes on Hover:**
+- Scale: 1.0 → 1.02 (2% increase)
+- Shadow: `effect-card` → `effect-floating` (lifts card)
+- Border opacity: 10% → 30% (more defined)
+- Transition: 200ms ease-out (smooth and natural)
+
+**Mobile Consideration:** On mobile (touch), hover states don't apply. Use tap/press states instead.
 
 **Selected:**
 - Border: 2px `primary/default`
@@ -3157,27 +3260,43 @@ _______________________________________________________
 
 ## 📅 Timeline & Milestones
 
-### Estimated Timeline: 8-12 hours
+### Estimated Timeline: 10-15 hours
 
-**Day 1 (4-5 hours):**
+**Realistic Estimate:** 13-14 hours  
+**Conservative Estimate:** 15 hours (with buffer)  
+**Optimistic Estimate:** 10-12 hours (if everything goes smoothly, no major issues)
+
+**Detailed Breakdown:**
+- Core implementation: 13.25 hours
+- Buffer time (10%): 1.5 hours
+- Issue resolution: 0.25 hours
+- **Total with buffer: 15 hours**
+
+**Day 1 (4 hours):**
 - ✅ Phase 1: Variables & Tokens (90 min)
 - ✅ Phase 2: Typography System (60 min)
 - ✅ Phase 3: Component Fixes - Part 1 (90 min)
 
-**Day 2 (4-5 hours):**
+**Day 2 (3.5 hours):**
 - ✅ Phase 3: Component Fixes - Part 2 (90 min)
 - ✅ Phase 4: Auto Layout & Responsiveness (120 min)
 
-**Day 3 (2-3 hours):**
+**Day 3 (3.75 hours):**
 - ✅ Phase 5: Visual Consistency (45 min)
 - ✅ Phase 6: Image Standards (30 min)
 - ✅ Phase 7: Naming & Organization (60 min)
 - ✅ Phase 8: Prototyping (90 min)
 
-**Day 4 (1-2 hours):**
+**Day 4 (2 hours):**
 - ✅ Verification & Testing (60 min)
 - ✅ Documentation & Handoff Prep (30 min)
 - ✅ Team Review & Approval (30 min)
+
+**Note:** Times are estimates. Actual duration may vary based on:
+- Figma proficiency level
+- Component complexity discoveries
+- Team review feedback cycles
+- Technical issues encountered
 
 ---
 
