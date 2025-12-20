@@ -375,7 +375,7 @@ create trigger user_preferences_updated_at
 create table public.location_reviews (
   id uuid primary key default gen_random_uuid(),
   location_id uuid references public.locations(id) on delete cascade not null,
-  user_id uuid references public.profiles(id) on delete set null not null,
+  user_id uuid references public.profiles(id) on delete set null,
   rating integer not null check (rating >= 1 and rating <= 5),
   comment text,
   visit_date date,

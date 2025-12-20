@@ -83,6 +83,11 @@ create policy "Participants can update conversations"
   using ( auth.uid() = any(participant_ids) )
   with check ( auth.uid() = any(participant_ids) );
 
+create policy "Participants can delete conversations"
+  on public.conversations for delete
+  to authenticated
+  using ( auth.uid() = any(participant_ids) );
+
 -- Indexes
 create index conversations_participant_ids_idx on public.conversations using gin(participant_ids);
 create index conversations_last_message_at_idx on public.conversations(last_message_at desc);

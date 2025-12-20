@@ -258,7 +258,7 @@ create table public.trip_items (
 comment on table public.trip_items is 'Individual items/activities within a trip. Links trips to locations with scheduling and ordering.';
 
 -- RLS
-alter table public.trips enable row level security;
+alter table public.trip_items enable row level security;
 
 create policy "Users can view items from their trips"
   on public.trip_items for select
