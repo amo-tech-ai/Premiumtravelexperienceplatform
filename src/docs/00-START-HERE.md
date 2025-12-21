@@ -90,6 +90,7 @@
 
 ### Roadmap Series (Reference)
 1. **[roadmap/01-saas-master-implementation-plan.md](./roadmap/01-saas-master-implementation-plan.md)** - Complete system blueprint
+2. **[roadmap/02-features-matrix.md](./roadmap/02-features-matrix.md)** - 📊 Complete feature audit & tech stack
 
 ### Historical Documentation (Archive)
 - Various documents in `/docs/*` - Previous iterations and research
@@ -145,6 +146,15 @@
 
 ### Goal: "What are the acceptance tests?"
 → Read: **roadmap/01-saas-master-implementation-plan.md** (section 9)
+
+### Goal: "Show me ALL features in table format"
+→ Read: **roadmap/02-features-matrix.md** ⭐ NEW
+
+### Goal: "What's the tech stack?"
+→ Read: **roadmap/02-features-matrix.md** (Table 11)
+
+### Goal: "Which features are working vs broken?"
+→ Read: **roadmap/02-features-matrix.md** (Tables 1-13)
 
 ---
 
