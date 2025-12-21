@@ -31,6 +31,7 @@ import EventDetailPage from './pages/EventDetail';
 import StyleGuidePage from './pages/StyleGuide';
 import ArchitecturePage from './pages/Architecture'; // Internal Docs
 import HowItWorksPage from './pages/HowItWorks'; // Public Page
+import HowItWorksV2 from './pages/HowItWorksV2'; // Detailed Walkthrough
 import Dashboard from './pages/Dashboard';
 import TripDiscoveryDashboard from './pages/TripDiscoveryDashboard';
 import ExplorePage from './pages/ExplorePage';
@@ -127,6 +128,7 @@ function App() {
                         <Route path="/style-guide" element={<StyleGuidePage />} />
                         <Route path="/architecture" element={<ArchitecturePage />} />
                         <Route path="/how-it-works" element={<HowItWorksPage />} />
+                        <Route path="/how-it-works-v2" element={<HowItWorksV2 />} />
                         <Route path="/pricing" element={<Pricing />} />
                         <Route path="/use-cases" element={<UseCasesIndex />} />
                         <Route path="/use-cases/digital-nomad" element={<DigitalNomadPage />} />

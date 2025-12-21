@@ -8,7 +8,7 @@ import {
   Theater, 
   Bike, 
   Landmark,
-  Palmtree,
+  TreePalm,
   Sparkles,
   ArrowRight
 } from 'lucide-react';
@@ -85,7 +85,7 @@ const imageTiles = [
 const pillLabels = [
   { id: 'spa', text: 'Spa / Wellness', icon: Sparkles, position: { top: '8%', left: '2%' }, linkedTile: 'resort' },
   { id: 'resorts', text: 'Resorts', icon: Building2, position: { top: '22%', left: '18%' }, linkedTile: 'resort' },
-  { id: 'beach', text: 'Beach', icon: Palmtree, position: { top: '16%', left: '50%' }, linkedTile: 'beach' },
+  { id: 'beach', text: 'Beach', icon: TreePalm, position: { top: '16%', left: '50%' }, linkedTile: 'beach' },
   { id: 'wildlife', text: 'Wildlife', icon: Bird, position: { top: '12%', right: '2%' }, linkedTile: 'wildlife' },
   { id: 'theater', text: 'Theater', icon: Theater, position: { top: '2%', right: '18%' }, linkedTile: 'theater' },
   { id: 'dining', text: 'Fine Dining', icon: Utensils, position: { top: '38%', right: '0%' }, linkedTile: 'dining' },
@@ -110,6 +110,29 @@ const TileCard = ({
   const [parallaxX, setParallaxX] = useState(0);
   const [parallaxY, setParallaxY] = useState(0);
 
+  // Orbit animation - subtle rotation around center
+  const orbitAngle = useMotionValue(0);
+  const springConfig = { stiffness: 50, damping: 20 };
+  const orbitX = useSpring(0, springConfig);
+  const orbitY = useSpring(0, springConfig);
+
+  useEffect(() => {
+    if (isInView) {
+      // Create gentle orbital motion
+      const animate = () => {
+        const time = Date.now() / 5000; // Slow rotation (5 seconds per cycle)
+        const angle = time + (index * Math.PI / 4); // Offset each card
+        const radius = 8; // Small orbit radius
+        
+        orbitX.set(Math.cos(angle) * radius);
+        orbitY.set(Math.sin(angle) * radius);
+      };
+      
+      const interval = setInterval(animate, 50);
+      return () => clearInterval(interval);
+    }
+  }, [isInView, index, orbitX, orbitY]);
+
   useEffect(() => {
     if (cardRef.current && mouseX !== null && mouseY !== null) {
       const rect = cardRef.current.getBoundingClientRect();
@@ -128,6 +151,10 @@ const TileCard = ({
 
   const isHovered = hoveredTile === tile.id;
 
+  // Create combined transform values
+  const combinedX = useTransform(() => orbitX.get() + parallaxX);
+  const combinedY = useTransform(() => orbitY.get() + parallaxY);
+
   return (
     <motion.div
       ref={cardRef}
@@ -136,27 +163,28 @@ const TileCard = ({
         opacity: 1, 
         scale: 1, 
         y: 0,
-        x: parallaxX,
       } : {}}
       transition={{ 
         duration: 0.6, 
         delay: index * 0.08,
         ease: [0.22, 1, 0.36, 1]
       }}
-      onMouseEnter={() => onHover(tile.id)}
-      onMouseLeave={() => onHover(null)}
-      className="absolute cursor-pointer group"
       style={{
+        x: combinedX,
+        y: combinedY,
         width: tile.width,
         height: tile.height,
         ...tile.position,
         zIndex: isHovered ? 100 : tile.zIndex,
       }}
+      onMouseEnter={() => onHover(tile.id)}
+      onMouseLeave={() => onHover(null)}
+      className="absolute cursor-pointer group"
     >
       <motion.div
         animate={{
           scale: isHovered ? 1.05 : 1,
-          y: isHovered ? -4 : parallaxY,
+          y: isHovered ? -4 : 0,
         }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
         className="w-full h-full rounded-3xl overflow-hidden shadow-lg relative"

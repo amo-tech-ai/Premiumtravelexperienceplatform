@@ -70,6 +70,17 @@ export function LuxuryHero() {
             </Button>
           </Link>
         </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="mt-6"
+        >
+          <Link to="/how-it-works-v2" className="text-white/80 hover:text-white text-sm font-medium underline underline-offset-4 transition-colors">
+            See how it works →
+          </Link>
+        </motion.div>
       </motion.div>
 
       {/* Scroll Indicator */}
