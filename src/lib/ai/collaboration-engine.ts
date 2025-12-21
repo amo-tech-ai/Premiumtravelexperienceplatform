@@ -16,12 +16,13 @@ import { getContextManager } from './context-manager';
 import type { AgentType } from './types';
 
 // Import agents
-import { getLocalScout } from './agents/local-scout';
-import { getDiningOrchestrator } from './agents/dining-orchestrator';
-import { getItineraryOptimizer } from './agents/itinerary-optimizer';
-import { getBookingAssistant } from './agents/booking-assistant';
-import { getEventCurator } from './agents/event-curator';
-import { getBudgetGuardian } from './agents/budget-guardian';
+import { LocalScoutAgent } from './agents/local-scout';
+import { DiningOrchestratorAgent } from './agents/dining-orchestrator';
+import { ItineraryOptimizerAgent } from './agents/itinerary-optimizer';
+// Note: These agents don't exist yet, commenting out
+// import { getBookingAssistant } from './agents/booking-assistant';
+// import { getEventCurator } from './agents/event-curator';
+// import { getBudgetGuardian } from './agents/budget-guardian';
 
 // --- TYPES ---
 
@@ -88,12 +89,13 @@ export class CollaborationEngine {
    * Initialize and register all agents
    */
   private initializeAgents() {
-    this.agentRegistry.set('local_scout', getLocalScout());
-    this.agentRegistry.set('dining_orchestrator', getDiningOrchestrator());
-    this.agentRegistry.set('itinerary_optimizer', getItineraryOptimizer());
-    this.agentRegistry.set('booking_assistant', getBookingAssistant());
-    this.agentRegistry.set('event_curator', getEventCurator());
-    this.agentRegistry.set('budget_guardian', getBudgetGuardian());
+    this.agentRegistry.set('local_scout', new LocalScoutAgent());
+    this.agentRegistry.set('dining_orchestrator', new DiningOrchestratorAgent());
+    this.agentRegistry.set('itinerary_optimizer', new ItineraryOptimizerAgent());
+    // Note: These agents don't exist yet, commenting out
+    // this.agentRegistry.set('booking_assistant', getBookingAssistant());
+    // this.agentRegistry.set('event_curator', getEventCurator());
+    // this.agentRegistry.set('budget_guardian', getBudgetGuardian());
 
     console.log(`[CollaborationEngine] Initialized ${this.agentRegistry.size} agents`);
   }

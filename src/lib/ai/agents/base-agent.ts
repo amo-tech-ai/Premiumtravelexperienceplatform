@@ -1,152 +1,110 @@
 /**
- * Base Agent Class
- * Abstract class for all AI agents
+ * Base Agent Class - Production Implementation
+ * All specialized agents extend this
  */
 
-import { getGeminiClient, GeminiClient } from '../gemini-client';
-import { getEventBus, EventBus } from '../event-bus';
-import type {
-  AgentType,
-  AgentStatus,
-  AgentRequest,
-  AgentResponse,
-  AgentContext,
-  AgentSuggestion,
-  AgentConfig,
-} from '../types';
+import { generateGeminiResponse, GeminiMessage } from '../gemini';
 
-export abstract class BaseAgent {
-  protected gemini: GeminiClient;
-  protected bus: EventBus;
-  protected config: AgentConfig;
-  protected status: AgentStatus = 'idle';
-
-  constructor(config: AgentConfig) {
-    this.gemini = getGeminiClient();
-    this.bus = getEventBus();
-    this.config = config;
-
-    // Subscribe to agent requests
-    this.bus.on('agent:request', async (payload) => {
-      if (payload.data.agentType === this.config.type) {
-        await this.handleRequest(payload.data);
-      }
-    });
-  }
-
-  /**
-   * Main request handler - must be implemented by each agent
-   */
-  protected abstract processRequest(
-    request: AgentRequest,
-    context: AgentContext
-  ): Promise<any>;
-
-  /**
-   * Generate suggestions based on results - optional override
-   */
-  protected generateSuggestions(data: any): AgentSuggestion[] {
-    return [];
-  }
-
-  /**
-   * Handle incoming request
-   */
-  private async handleRequest(request: AgentRequest): Promise<void> {
-    this.status = 'thinking';
-
-    try {
-      this.bus.emit('agent:status', {
-        agentType: this.config.type,
-        status: 'thinking',
-      });
-
-      // Process the request
-      const result = await this.processRequest(request, request.context);
-
-      this.status = 'complete';
-
-      // Generate suggestions
-      const suggestions = this.generateSuggestions(result);
-
-      // Create response
-      const response: AgentResponse = {
-        id: this.generateId(),
-        requestId: request.id,
-        agentType: this.config.type,
-        status: 'complete',
-        data: result,
-        suggestions,
-        confidence: this.calculateConfidence(result),
-        timestamp: Date.now(),
-      };
-
-      // Emit response
-      this.bus.emit('agent:response', response, {
-        source: this.config.type,
-      });
-
-      this.status = 'idle';
-    } catch (error) {
-      this.status = 'error';
-
-      console.error(`[${this.config.type}] Error:`, error);
-
-      this.bus.emit('agent:error', {
-        agentType: this.config.type,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        requestId: request.id,
-      });
-
-      this.status = 'idle';
-    }
-  }
-
-  /**
-   * Calculate confidence score - can be overridden
-   */
-  protected calculateConfidence(data: any): number {
-    if (!data) return 0;
-    if (Array.isArray(data)) {
-      return data.length > 0 ? 0.8 : 0.2;
-    }
-    return 0.7;
-  }
-
-  /**
-   * Generate unique ID
-   */
-  protected generateId(): string {
-    return `${this.config.type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  /**
-   * Get agent status
-   */
-  getStatus(): AgentStatus {
-    return this.status;
-  }
-
-  /**
-   * Get agent config
-   */
-  getConfig(): AgentConfig {
-    return this.config;
-  }
-
-  /**
-   * Check if agent is enabled
-   */
-  isEnabled(): boolean {
-    return this.config.enabled;
-  }
-
-  /**
-   * Enable/disable agent
-   */
-  setEnabled(enabled: boolean): void {
-    this.config.enabled = enabled;
-  }
+export interface AgentContext {
+  userId?: string;
+  tripId?: string;
+  location?: string;
+  preferences?: any;
+  budget?: { min: number; max: number; currency: string };
 }
 
-export default BaseAgent;
+export interface AgentRequest {
+  query: string;
+  context: AgentContext;
+  conversationHistory?: GeminiMessage[];
+}
+
+export interface AgentResponse {
+  content: string;
+  suggestions: any[];
+  reasoning: string;
+  confidence: number;
+  metadata?: any;
+}
+
+export abstract class BaseAgent {
+  protected agentName: string;
+  protected systemPrompt: string;
+
+  constructor(agentName: string, systemPrompt: string) {
+    this.agentName = agentName;
+    this.systemPrompt = systemPrompt;
+  }
+
+  /**
+   * Process agent request
+   */
+  async process(request: AgentRequest): Promise<AgentResponse> {
+    const startTime = Date.now();
+
+    try {
+      // Build enhanced prompt
+      const enhancedPrompt = this.buildPrompt(request);
+
+      // Call Gemini
+      const response = await generateGeminiResponse({
+        message: enhancedPrompt,
+        conversationHistory: request.conversationHistory,
+        systemPrompt: this.systemPrompt,
+      });
+
+      // Parse response
+      const parsed = this.parseResponse(response.content);
+
+      // Log execution
+      this.logExecution(request, parsed, Date.now() - startTime);
+
+      return parsed;
+    } catch (error: any) {
+      console.error(`${this.agentName} error:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Build context-aware prompt
+   */
+  protected buildPrompt(request: AgentRequest): string {
+    let prompt = request.query;
+
+    // Add context
+    if (request.context.location) {
+      prompt += `\n\nLocation: ${request.context.location}`;
+    }
+
+    if (request.context.budget) {
+      prompt += `\n\nBudget: ${request.context.budget.min}-${request.context.budget.max} ${request.context.budget.currency}`;
+    }
+
+    if (request.context.preferences) {
+      prompt += `\n\nPreferences: ${JSON.stringify(request.context.preferences)}`;
+    }
+
+    return prompt;
+  }
+
+  /**
+   * Parse AI response into structured format
+   */
+  protected abstract parseResponse(content: string): AgentResponse;
+
+  /**
+   * Log agent execution
+   */
+  protected logExecution(
+    request: AgentRequest,
+    response: AgentResponse,
+    durationMs: number
+  ): void {
+    console.log(`[${this.agentName}] Executed in ${durationMs}ms`, {
+      query: request.query.substring(0, 100),
+      confidence: response.confidence,
+      suggestionsCount: response.suggestions.length,
+    });
+  }
+}

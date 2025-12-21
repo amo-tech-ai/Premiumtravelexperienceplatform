@@ -45,6 +45,11 @@ import { getAnalyticsService } from './lib/services/analytics';
 import FeatureGallery from './pages/FeatureGallery';
 import AdvancedAIDemo from './components/ai/AdvancedAIDemo';
 
+// New App Pages
+import TripsPage from './pages/app/TripsPage';
+import ConciergePage from './pages/app/ConciergePage';
+import TripDetailPage from './pages/app/TripDetailPage';
+
 // ScrollToTop component
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -150,6 +155,11 @@ function App() {
                         <Route path="/collections" element={<SavedPlacesPage />} />
                         <Route path="/trip/:id" element={<TripDetailsPage />} />
                         <Route path="/profile" element={<Dashboard />} />
+
+                        {/* New App Pages */}
+                        <Route path="/app/trips" element={<TripsPage />} />
+                        <Route path="/app/concierge" element={<ConciergePage />} />
+                        <Route path="/app/trip/:id" element={<TripDetailPage />} />
 
                         {/* 404 Route */}
                         <Route path="*" element={<NotFound />} />
