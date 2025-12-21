@@ -34,10 +34,19 @@ export function Footer() {
           <div>
             <h3 className="text-amber-400 font-bold text-sm tracking-widest uppercase mb-6">Discover</h3>
             <ul className="space-y-4 text-sm">
+              <li>
+                <Link 
+                  to="/app/whats-new" 
+                  className="flex items-center gap-2 hover:text-white transition-colors font-semibold text-emerald-400"
+                >
+                  <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                  What's New ✨
+                </Link>
+              </li>
               <li><Link to="/explore" className="hover:text-white transition-colors">Explore Map</Link></li>
-              <li><Link to="/ai" className="hover:text-white transition-colors">AI Concierge</Link></li>
+              <li><Link to="/app/concierge" className="hover:text-white transition-colors">AI Concierge</Link></li>
               <li><Link to="/explore" className="hover:text-white transition-colors">Events</Link></li>
-              <li><Link to="/dashboard" className="hover:text-white transition-colors font-medium text-emerald-400">Dashboard</Link></li>
+              <li><Link to="/dashboard" className="hover:text-white transition-colors font-medium text-amber-400">Dashboard</Link></li>
               <li><Link to="/real-estate" className="hover:text-white transition-colors">Luxury Properties</Link></li>
               <li><Link to="/itineraries" className="hover:text-white transition-colors">Curated Itineraries</Link></li>
             </ul>
