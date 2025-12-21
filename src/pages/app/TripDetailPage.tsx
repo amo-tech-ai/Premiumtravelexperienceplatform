@@ -1,21 +1,54 @@
 /**
  * Trip Detail Page - Itinerary Builder
+ * Production-Ready with Full Activity CRUD
  */
 
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useParams } from 'react-router-dom';
-import { MapPin, Calendar, Plus, Settings, Share2, Download } from 'lucide-react';
+import { MapPin, Calendar, Plus, Settings, Share2, Download, Edit2, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { useTrip } from '../../hooks/useTrips';
 import { formatDateRange, daysBetween } from '../../lib/utils/date';
 import { Skeleton } from '../../components/ui/skeleton';
+import { AddActivityModal } from '../../components/modals/AddActivityModal';
+import { EditActivityModal } from '../../components/modals/EditActivityModal';
+import { DeleteActivityDialog } from '../../components/modals/DeleteActivityDialog';
+import { toast } from 'sonner';
 
 export default function TripDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { trip, loading, error } = useTrip(id || null);
+  const { trip, loading, error, refetch } = useTrip(id || null);
   const [activeTab, setActiveTab] = useState('itinerary');
+
+  // Modal state
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<any>(null);
+  const [selectedDay, setSelectedDay] = useState<number>(1);
+
+  const handleAddActivity = (day: number) => {
+    setSelectedDay(day);
+    setShowAddModal(true);
+  };
+
+  const handleEditActivity = (activity: any) => {
+    setSelectedActivity(activity);
+    setShowEditModal(true);
+  };
+
+  const handleDeleteActivity = (activity: any) => {
+    setSelectedActivity(activity);
+    setShowDeleteDialog(true);
+  };
+
+  const handleActivitySuccess = () => {
+    // Refetch trip data after any CRUD operation
+    refetch();
+    toast.success('Changes saved!');
+  };
 
   if (loading) {
     return (
@@ -131,7 +164,7 @@ export default function TripDetailPage() {
                   >
                     <div className="mb-4 flex items-center justify-between">
                       <h3 className="text-xl text-stone-900">Day {day}</h3>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleAddActivity(day)}>
                         <Plus className="mr-2 h-4 w-4" />
                         Add Activity
                       </Button>
@@ -166,13 +199,29 @@ export default function TripDetailPage() {
                                 )}
                               </div>
                             </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditActivity(item)}
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDeleteActivity(item)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                         ))}
                       </div>
                     ) : (
                       <div className="rounded-lg border-2 border-dashed border-stone-200 p-8 text-center">
                         <p className="text-stone-500">No activities planned for this day</p>
-                        <Button size="sm" variant="outline" className="mt-3">
+                        <Button size="sm" variant="outline" className="mt-3" onClick={() => handleAddActivity(day)}>
                           Add Activity
                         </Button>
                       </div>
@@ -189,7 +238,7 @@ export default function TripDetailPage() {
                 Start building your itinerary by adding activities, or let our AI suggest a complete plan.
               </p>
               <div className="flex gap-3">
-                <Button>
+                <Button onClick={() => handleAddActivity(1)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Add Activity
                 </Button>
@@ -217,6 +266,46 @@ export default function TripDetailPage() {
           </div>
         </TabsContent>
       </div>
+
+      {/* Activity CRUD Modals */}
+      {trip && (
+        <>
+          <AddActivityModal
+            open={showAddModal}
+            onClose={() => setShowAddModal(false)}
+            tripId={trip.id}
+            tripDays={duration}
+            onSuccess={handleActivitySuccess}
+          />
+
+          {selectedActivity && (
+            <>
+              <EditActivityModal
+                open={showEditModal}
+                onClose={() => {
+                  setShowEditModal(false);
+                  setSelectedActivity(null);
+                }}
+                tripId={trip.id}
+                tripDays={duration}
+                activity={selectedActivity}
+                onSuccess={handleActivitySuccess}
+              />
+
+              <DeleteActivityDialog
+                open={showDeleteDialog}
+                onClose={() => {
+                  setShowDeleteDialog(false);
+                  setSelectedActivity(null);
+                }}
+                tripId={trip.id}
+                activity={selectedActivity}
+                onSuccess={handleActivitySuccess}
+              />
+            </>
+          )}
+        </>
+      )}
     </div>
   );
 }

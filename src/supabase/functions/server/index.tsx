@@ -1,8 +1,10 @@
 import { Hono } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
+import { stream } from "npm:hono/streaming";
 import * as kv from "./kv_store.tsx";
 import * as db from "./database-setup.tsx";
+import { getAIService } from "./ai-service.tsx";
 
 const app = new Hono();
 
@@ -390,30 +392,90 @@ app.post("/make-server-fd8c4bf7/collections/:collectionId/places/:placeId", asyn
 // AI / SEARCH ROUTES (Placeholder - will be implemented in Phase 3)
 // ============================================================================
 
-// AI chat endpoint
+// AI chat endpoint - PRODUCTION READY
 app.post("/make-server-fd8c4bf7/ai/chat", async (c) => {
   try {
     const userId = getUserId(c.req);
     const body = await c.req.json();
     
-    const { message, conversationId, tripId } = body;
+    const { message, conversationId, tripId, history } = body;
     
     if (!message) {
       return c.json(errorResponse('Message is required', 400), 400);
     }
     
-    // TODO: Implement Gemini integration in Phase 3
-    // For now, return a mock response
+    console.log(`📨 AI Chat Request from user ${userId}: "${message}"`);
     
-    const mockResponse = {
-      message: "I'm your AI travel concierge. I'll help you plan amazing trips! (AI integration coming in Phase 3)",
-      suggestions: [],
-    };
+    // Get AI service instance
+    const aiService = getAIService();
     
-    return c.json(successResponse(mockResponse));
+    if (!aiService.isReady()) {
+      console.warn('⚠️ AI Service not ready - using fallback');
+    }
+    
+    // Process message with real AI
+    const aiResponse = await aiService.processMessage({
+      message,
+      conversationId,
+      tripId,
+      userId,
+      history,
+    });
+    
+    console.log(`✅ AI Response from ${aiResponse.agent}: ${aiResponse.message.substring(0, 100)}...`);
+    
+    return c.json(successResponse({
+      message: aiResponse.message,
+      agent: aiResponse.agent,
+      suggestions: aiResponse.suggestions || [],
+      confidence: aiResponse.confidence,
+    }));
   } catch (error) {
-    console.error('Error in AI chat:', error);
-    return c.json(errorResponse('Failed to process chat message', 500), 500);
+    console.error('❌ Error in AI chat:', error);
+    return c.json(errorResponse(`Failed to process chat message: ${error instanceof Error ? error.message : 'Unknown error'}`, 500), 500);
+  }
+});
+
+// AI chat endpoint with streaming - PRODUCTION READY
+app.post("/make-server-fd8c4bf7/ai/chat/stream", async (c) => {
+  try {
+    const userId = getUserId(c.req);
+    const body = await c.req.json();
+    
+    const { message, conversationId, tripId, history } = body;
+    
+    if (!message) {
+      return c.json(errorResponse('Message is required', 400), 400);
+    }
+    
+    console.log(`📨 AI Stream Request from user ${userId}: "${message}"`);
+    
+    // Get AI service instance
+    const aiService = getAIService();
+    
+    return stream(c, async (streamWriter) => {
+      try {
+        const streamGenerator = aiService.processMessageStream({
+          message,
+          conversationId,
+          tripId,
+          userId,
+          history,
+        });
+        
+        for await (const chunk of streamGenerator) {
+          await streamWriter.write(chunk);
+        }
+        
+        console.log(`✅ AI Stream completed for user ${userId}`);
+      } catch (error) {
+        console.error('❌ Error in AI streaming:', error);
+        await streamWriter.write(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error setting up AI stream:', error);
+    return c.json(errorResponse(`Failed to setup stream: ${error instanceof Error ? error.message : 'Unknown error'}`, 500), 500);
   }
 });
 

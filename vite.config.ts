@@ -48,6 +48,7 @@
         '@radix-ui/react-alert-dialog@1.1.6': '@radix-ui/react-alert-dialog',
         '@radix-ui/react-accordion@1.2.3': '@radix-ui/react-accordion',
         '@jsr/supabase__supabase-js@2.49.8': '@jsr/supabase__supabase-js',
+        '@google/generative-ai@0.21.0': '@google/generative-ai',
         '@': path.resolve(__dirname, './src'),
       },
     },

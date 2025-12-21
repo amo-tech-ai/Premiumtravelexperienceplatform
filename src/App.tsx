@@ -49,6 +49,7 @@ import AdvancedAIDemo from './components/ai/AdvancedAIDemo';
 import TripsPage from './pages/app/TripsPage';
 import ConciergePage from './pages/app/ConciergePage';
 import TripDetailPage from './pages/app/TripDetailPage';
+import WhatsNewPage from './pages/WhatsNew';
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -160,6 +161,7 @@ function App() {
                         <Route path="/app/trips" element={<TripsPage />} />
                         <Route path="/app/concierge" element={<ConciergePage />} />
                         <Route path="/app/trip/:id" element={<TripDetailPage />} />
+                        <Route path="/app/whats-new" element={<WhatsNewPage />} />
 
                         {/* 404 Route */}
                         <Route path="*" element={<NotFound />} />
