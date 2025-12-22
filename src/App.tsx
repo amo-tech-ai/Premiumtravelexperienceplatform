@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
+import HomeV2 from './pages/HomeV2';
+import SliderDemo from './pages/SliderDemo';
 import MedellinExperiencesPage from './pages/MedellinExperiences';
 import ExperienceDetailPage from './pages/ExperienceDetail';
 import Explorer from './pages/Explorer';
@@ -111,6 +113,7 @@ function App() {
                     <AppShell>
                       <Routes>
                         <Route path="/" element={<Home />} />
+                        <Route path="/home-v2" element={<HomeV2 />} />
                         <Route path="/experiences/medellin" element={<MedellinExperiencesPage />} />
                         <Route path="/map" element={<Explorer />} />
                         <Route path="/concierge" element={<Concierge />} />
@@ -146,6 +149,7 @@ function App() {
                         {/* Feature Gallery & AI Demo */}
                         <Route path="/features" element={<FeatureGallery />} />
                         <Route path="/ai-demo" element={<AdvancedAIDemo />} />
+                        <Route path="/slider-demo" element={<SliderDemo />} />
                         
                         {/* New Routes Alias */}
                         <Route path="/explore" element={<ExplorePage />} />

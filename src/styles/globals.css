@@ -204,3 +204,60 @@ html {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+
+/* Home V2 Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 1s ease-out;
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 1s ease-out;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-bounce {
+  animation: bounce 2s infinite;
+}

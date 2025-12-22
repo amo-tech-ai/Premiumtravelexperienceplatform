@@ -56,6 +56,17 @@ export function Footer() {
           <div>
             <h3 className="text-amber-400 font-bold text-sm tracking-widest uppercase mb-6">Company</h3>
             <ul className="space-y-4 text-sm">
+              <li><Link to="/" className="hover:text-white transition-colors">Home V1</Link></li>
+              <li>
+                <Link 
+                  to="/home-v2" 
+                  className="flex items-center gap-2 hover:text-white transition-colors font-semibold text-amber-400"
+                >
+                  <span className="inline-block w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+                  Home V2 ✨
+                </Link>
+              </li>
+              <li><Link to="/slider-demo" className="hover:text-white transition-colors">Slider Component</Link></li>
               <li><Link to="/how-it-works" className="hover:text-white transition-colors">How it Works (Quick)</Link></li>
               <li><Link to="/how-it-works-v2" className="hover:text-white transition-colors">How it Works (Detailed)</Link></li>
               <li><Link to="/use-cases" className="hover:text-white transition-colors">Use Cases</Link></li>

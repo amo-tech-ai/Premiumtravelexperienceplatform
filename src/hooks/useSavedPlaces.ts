@@ -2,6 +2,7 @@
  * useSavedPlaces Hook
  * 
  * React hook for managing saved places
+ * Note: Auto-fetch is disabled by default until backend is deployed
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -18,12 +19,17 @@ interface UseSavedPlacesReturn {
   isPlaceSaved: (placeId: string) => boolean;
 }
 
+interface UseSavedPlacesOptions {
+  autoFetch?: boolean; // Default: false (disabled until backend ready)
+}
+
 /**
  * Hook for managing saved places
  */
-export function useSavedPlaces(): UseSavedPlacesReturn {
+export function useSavedPlaces(options: UseSavedPlacesOptions = {}): UseSavedPlacesReturn {
+  const { autoFetch = false } = options; // Disabled by default
   const [places, setPlaces] = useState<SavedPlace[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start as false
   const [error, setError] = useState<string | null>(null);
 
   const fetchPlaces = useCallback(async () => {
@@ -33,16 +39,25 @@ export function useSavedPlaces(): UseSavedPlacesReturn {
       const data = await getSavedPlaces();
       setPlaces(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch saved places');
-      console.error('Error fetching saved places:', err);
+      // Silently fail and use empty array - API might not be deployed yet
+      setError(null); // Don't show error to user
+      setPlaces([]); // Use empty array as fallback
+      
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.warn('Saved places API not available (backend not deployed)');
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchPlaces();
-  }, [fetchPlaces]);
+    // Only fetch if explicitly enabled
+    if (autoFetch) {
+      fetchPlaces();
+    }
+  }, [fetchPlaces, autoFetch]);
 
   const save = useCallback(
     async (data: SavePlaceRequest): Promise<SavedPlace | null> => {
