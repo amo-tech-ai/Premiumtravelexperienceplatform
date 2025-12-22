@@ -2,38 +2,23 @@
  * Trips Page - Main Dashboard
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'motion/react';
 import { Plus, Calendar, MapPin, Users } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { useTrips } from '../../hooks/useTrips';
+import { useWizard } from '../../context/WizardContext';
 import { formatDateRange } from '../../lib/utils/date';
 import { Skeleton } from '../../components/ui/skeleton';
 
 export default function TripsPage() {
-  const { trips, loading, error, createTrip } = useTrips();
-  const [isCreating, setIsCreating] = useState(false);
+  const { trips, loading, error } = useTrips();
+  const { openCreateTrip } = useWizard();
 
-  const handleCreateTrip = async () => {
-    setIsCreating(true);
-    try {
-      const newTrip = await createTrip({
-        title: 'Untitled Trip',
-        destination: '',
-        start_date: new Date().toISOString().split('T')[0],
-        end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      });
-
-      if (newTrip) {
-        window.location.href = `/app/trip/${newTrip.id}`;
-      }
-    } catch (err) {
-      console.error('Failed to create trip:', err);
-    } finally {
-      setIsCreating(false);
-    }
+  const handleCreateTrip = () => {
+    openCreateTrip();
   };
 
   if (loading) {
@@ -74,9 +59,9 @@ export default function TripsPage() {
           <h1 className="mb-2 text-3xl text-stone-900">My Trips</h1>
           <p className="text-stone-600">Plan, organize, and manage your adventures</p>
         </div>
-        <Button onClick={handleCreateTrip} disabled={isCreating} size="lg">
+        <Button onClick={handleCreateTrip} size="lg">
           <Plus className="mr-2 h-4 w-4" />
-          {isCreating ? 'Creating...' : 'New Trip'}
+          New Trip
         </Button>
       </div>
 

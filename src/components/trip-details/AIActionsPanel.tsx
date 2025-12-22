@@ -1,3 +1,17 @@
+import { useState } from 'react';
+import { motion } from 'motion/react';
+import { 
+  Sparkles, 
+  Map, 
+  AlertTriangle, 
+  DollarSign, 
+  Calendar, 
+  Cloud, 
+  Zap, 
+  ChevronRight, 
+  TrendingUp, 
+  CheckCircle 
+} from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils/utils';
 import { useTripDetails } from './TripDetailsContext';

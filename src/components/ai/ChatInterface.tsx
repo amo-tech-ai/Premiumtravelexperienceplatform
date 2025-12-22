@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, X, Sparkles, MapPin, Calendar, Users } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAI } from '../../context/AIContext';

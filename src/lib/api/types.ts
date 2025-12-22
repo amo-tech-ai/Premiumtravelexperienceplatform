@@ -176,6 +176,7 @@ export interface CreateTripRequest {
   end_date: string;
   description?: string;
   cover_image?: string;
+  status?: 'draft' | 'active' | 'completed' | 'archived';
 }
 
 export interface UpdateTripRequest extends Partial<CreateTripRequest> {

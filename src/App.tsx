@@ -73,13 +73,15 @@ const ServiceInitializer = () => {
     // Register service worker for PWA support (gracefully fails in unsupported environments)
     registerServiceWorker()
       .then((registration) => {
-        if (registration) {
+        if (registration && import.meta.env.DEV) {
           console.log('✓ Service worker registered successfully');
         }
       })
       .catch((error) => {
         // Silent fail - service worker is optional
-        console.log('Service worker not available:', error?.message || 'Unknown error');
+        if (import.meta.env.DEV) {
+          console.log('Service worker not available:', error?.message || 'Unknown error');
+        }
       });
 
     // Initialize analytics

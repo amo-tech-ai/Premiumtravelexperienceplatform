@@ -65,7 +65,9 @@ export const WizardProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const handleAIEvent = useCallback((event: AIEvent) => {
-    console.log('[WizardContext] AI Event:', event);
+    if (import.meta.env.DEV) {
+      console.log('[WizardContext] AI Event:', event);
+    }
     switch (event.type) {
       case 'SET_INTENT':
         if (event.payload) setIntent(event.payload as UserIntent);

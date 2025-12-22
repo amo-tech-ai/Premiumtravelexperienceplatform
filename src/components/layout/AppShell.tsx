@@ -1,5 +1,5 @@
-import { Menu, X } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { type ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import { TopNav } from "./TopNav";
 import { BottomNav } from "./BottomNav";
 import { Sidebar } from "./Sidebar";
@@ -9,7 +9,6 @@ import { ConciergeFab } from "../ai/ConciergeFab";
 import { ConciergeOverlay } from "../ai/ConciergeOverlay";
 import { TripCreateModal } from "../trip-wizard/TripCreateModal";
 import { Toaster } from "../ui/sonner";
-import { QuickAccessMenu } from "../navigation/QuickAccessMenu";
 
 interface AppShellProps {
   children: ReactNode;
@@ -77,7 +76,6 @@ export function AppShell({ children, className }: AppShellProps) {
       <ConciergeFab />
       <ConciergeOverlay />
       <TripCreateModal />
-      <QuickAccessMenu />
       <Toaster />
     </div>
   );

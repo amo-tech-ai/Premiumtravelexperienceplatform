@@ -1,6 +1,14 @@
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { Layout } from 'lucide-react';
 import { cn } from '../../lib/utils/utils';
-
+import { Button } from '../../components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '../../components/ui/sheet';
+import { TripDetailsProvider, useTripDetails } from '../../components/trip-details/TripDetailsContext';
+import { ItineraryFeed } from '../../components/trip-details/ItineraryFeed';
+import { TripSidebar } from '../../components/trip-details/TripSidebar';
 import { AIItineraryBridge } from '../../components/trip-details/AIItineraryBridge';
 
 // Inner Layout Component that uses the Context

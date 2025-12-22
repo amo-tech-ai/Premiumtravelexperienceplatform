@@ -2,18 +2,26 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, MapPin, Calendar, User, DollarSign, Plus, ChevronDown, Check, Info } from 'lucide-react';
 import { useWizard } from '../../context/WizardContext';
+import { useTrips } from '../../hooks/useTrips';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
+import { toast } from 'sonner@2.0.3';
 
 import { useNavigate } from 'react-router-dom';
-import { useAI } from '../../context/AIContext';
-import { addDays } from 'date-fns@3.6.0';
+import { addDays, format } from 'date-fns@3.6.0';
+import type { 
+  LocationSelectProps, 
+  DateSelectProps, 
+  TravelersSelectProps, 
+  BudgetSelectProps,
+  BudgetOption 
+} from '../../src/types/trips';
 
 // --- Sub-components for Form Steps (Inline for now to keep context together) ---
 
 // 1. Location Selection
-const LocationSelect = ({ value, onChange, onClose }: any) => {
+const LocationSelect = ({ value, onChange, onClose }: LocationSelectProps) => {
   return (
     <div className="space-y-4">
       <div className="relative">
@@ -47,7 +55,7 @@ const LocationSelect = ({ value, onChange, onClose }: any) => {
 };
 
 // 2. Date Selection
-const DateSelect = ({ onClose }: any) => {
+const DateSelect = ({ onClose }: DateSelectProps) => {
   const months = ['January', 'February', 'March', 'April', 'May', 'June'];
   const [days, setDays] = useState(5);
 
@@ -92,7 +100,7 @@ const DateSelect = ({ onClose }: any) => {
 };
 
 // 3. Travelers Selection
-const TravelersSelect = ({ count, onChange, onClose }: any) => {
+const TravelersSelect = ({ count, onChange, onClose }: TravelersSelectProps) => {
   return (
     <div className="space-y-6">
        <div className="flex items-center justify-between p-2">
@@ -123,8 +131,8 @@ const TravelersSelect = ({ count, onChange, onClose }: any) => {
 };
 
 // 4. Budget Selection
-const BudgetSelect = ({ selected, onChange, onClose }: any) => {
-  const options = [
+const BudgetSelect = ({ selected, onChange, onClose }: BudgetSelectProps) => {
+  const options: BudgetOption[] = [
     { label: 'Any budget', val: 'any' },
     { label: 'On a budget', val: '$', icon: '$' },
     { label: 'Sensibly priced', val: '$$', icon: '$$' },
@@ -168,15 +176,16 @@ const BudgetSelect = ({ selected, onChange, onClose }: any) => {
 
 export function TripCreateModal() {
   const { ui, closeCreateTrip } = useWizard();
-  const { injectMessage, saveItem } = useAI();
+  const { createTrip } = useTrips();
   const navigate = useNavigate();
   const [activeField, setActiveField] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   
   // Form State
   const [location, setLocation] = useState("Pereira");
-  const [dates, setDates] = useState("5 days in Jan");
+  const [days, setDays] = useState(5);
   const [travelers, setTravelers] = useState(2);
-  const [budget, setBudget] = useState("$$$$ Luxury");
+  const [budget, setBudget] = useState("$$$$");
   const [isRoadTrip, setIsRoadTrip] = useState(false);
 
   if (!ui.isCreateTripOpen) return null;
@@ -185,39 +194,41 @@ export function TripCreateModal() {
     setActiveField(field === activeField ? null : field);
   };
 
-  const handleCreateTrip = () => {
-      // 1. Map Budget String to Number
-      let budgetVal = 2000;
-      if (budget.includes('$')) budgetVal = 500;
-      if (budget.includes('$$')) budgetVal = 1500;
-      if (budget.includes('$$$')) budgetVal = 3000;
-      if (budget.includes('$$$$')) budgetVal = 5000;
+  const handleCreateTrip = async () => {
+    // Validation
+    if (!location || location.trim() === '') {
+      toast.error('Please select a destination');
+      return;
+    }
 
-      // 2. Generate Trip ID
-      const newTripId = `trip-${Date.now()}`;
+    setLoading(true);
+    try {
+      // Calculate dates
+      const startDate = new Date();
+      const endDate = addDays(startDate, days);
 
-      // 3. Save to AI Context (Global Store)
-      saveItem({
-          id: newTripId,
-          type: 'itinerary',
-          title: `Trip to ${location || "Medellín"}`,
-          date: dates,
-          image: "https://images.unsplash.com/photo-1599582106603-946654a9388c?auto=format&fit=crop&q=80",
-          data: {
-              budget: budgetVal,
-              travelers: travelers,
-              location: location || "Medellín"
-          }
+      // Create trip in database
+      const newTrip = await createTrip({
+        title: `Trip to ${location}`,
+        destination: location,
+        start_date: format(startDate, 'yyyy-MM-dd'),
+        end_date: format(endDate, 'yyyy-MM-dd'),
+        status: 'draft'
       });
 
-      // 4. Close Modal
-      closeCreateTrip();
-
-      // 5. Inject "Thought" into AI Context
-      injectMessage(`I've created a new trip to ${location} for ${travelers} people.`, 'user', 'ITINERARY');
-
-      // 6. Navigate to Trip Details
-      navigate(`/trip/${newTripId}`);
+      if (newTrip) {
+        toast.success('Trip created successfully!');
+        closeCreateTrip();
+        navigate(`/app/trip/${newTrip.id}`);
+      }
+    } catch (error) {
+      toast.error('Failed to create trip');
+      if (import.meta.env.DEV) {
+        console.error('Error creating trip:', error);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -258,7 +269,7 @@ export function TripCreateModal() {
            <div className="absolute bottom-6 left-6 text-white">
               <h2 className="text-3xl font-bold mb-1">{location || "Where to?"}</h2>
               <div className="text-sm font-medium opacity-90 flex flex-wrap gap-2">
-                 <span>{dates}</span>
+                 <span>{days} days in Jan</span>
                  <span>•</span>
                  <span>{travelers} travelers</span>
               </div>
@@ -335,7 +346,7 @@ export function TripCreateModal() {
                    onClick={() => handleFieldClick('dates')}
                    className="w-full text-left p-4 border border-slate-200 rounded-xl flex items-center justify-between hover:border-slate-900 transition-colors"
                  >
-                    <span className="font-medium text-slate-900">{dates}</span>
+                    <span className="font-medium text-slate-900">{days} days in Jan</span>
                     <ChevronDown className="w-4 h-4 text-slate-400" />
                  </button>
                  {activeField === 'dates' && (
@@ -386,8 +397,9 @@ export function TripCreateModal() {
               <Button 
                 onClick={handleCreateTrip}
                 className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-full h-12 text-lg font-medium"
+                disabled={loading}
               >
-                 Create trip
+                 {loading ? "Creating..." : "Create trip"}
               </Button>
            </div>
 
