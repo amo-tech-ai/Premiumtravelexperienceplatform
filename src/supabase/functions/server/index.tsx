@@ -7,6 +7,14 @@ import * as db from "./database-setup.tsx";
 import { getAIService } from "./ai-service.tsx";
 import * as jobService from "./job-service.ts";
 
+// ============================================================================
+// DB SERVICES (Supabase-first)
+// ============================================================================
+import * as dbEvents from './db-events-service.ts';
+import * as dbRestaurants from './db-restaurants-service.ts';
+import * as dbRentals from './db-rentals-service.ts';
+import * as dbLocations from './db-locations-service.ts';
+
 const app = new Hono();
 
 // Enable logger
@@ -386,6 +394,352 @@ app.post("/make-server-fd8c4bf7/collections/:collectionId/places/:placeId", asyn
   } catch (error) {
     console.error('Error adding place to collection:', error);
     return c.json(errorResponse('Failed to add place to collection', 500), 500);
+  }
+});
+
+// ============================================================================
+// EVENTS ROUTES
+// ============================================================================
+
+// Get all events (with filters)
+app.get("/make-server-fd8c4bf7/events", async (c) => {
+  try {
+    // Query Postgres (single source of truth - NO auto-seed)
+    const search = c.req.query('search');
+    const category = c.req.query('category');
+    const area = c.req.query('area');
+    
+    let events;
+    if (search) {
+      events = await dbEvents.search(search);
+    } else {
+      events = await dbEvents.getAll({ category, area });
+    }
+    
+    return c.json(successResponse(events));
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    return c.json(errorResponse('Failed to fetch events', 500), 500);
+  }
+});
+
+// Get single event
+app.get("/make-server-fd8c4bf7/events/:id", async (c) => {
+  try {
+    const eventId = c.req.param('id');
+    const event = await dbEvents.getById(eventId);
+    
+    if (!event) {
+      return c.json(errorResponse('Event not found', 404), 404);
+    }
+    
+    return c.json(successResponse(event));
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    return c.json(errorResponse('Failed to fetch event', 500), 500);
+  }
+});
+
+// Create event
+app.post("/make-server-fd8c4bf7/events", async (c) => {
+  try {
+    const body = await c.req.json();
+    
+    // Validate required fields
+    if (!body.name) {
+      return c.json(errorResponse('Event name is required', 400), 400);
+    }
+
+    const event = await dbEvents.create(body);
+    
+    return c.json(successResponse(event, 'Event created successfully'), 201);
+  } catch (error) {
+    console.error('Error creating event:', error);
+    return c.json(errorResponse('Failed to create event', 500), 500);
+  }
+});
+
+// Update event
+app.put("/make-server-fd8c4bf7/events/:id", async (c) => {
+  try {
+    const eventId = c.req.param('id');
+    const body = await c.req.json();
+    
+    const event = await dbEvents.update(eventId, body);
+    
+    if (!event) {
+      return c.json(errorResponse('Event not found', 404), 404);
+    }
+    
+    return c.json(successResponse(event, 'Event updated successfully'));
+  } catch (error) {
+    console.error('Error updating event:', error);
+    return c.json(errorResponse('Failed to update event', 500), 500);
+  }
+});
+
+// Delete event (soft delete)
+app.delete("/make-server-fd8c4bf7/events/:id", async (c) => {
+  try {
+    const eventId = c.req.param('id');
+    
+    const deleted = await dbEvents.softDelete(eventId);
+    
+    if (!deleted) {
+      return c.json(errorResponse('Event not found', 404), 404);
+    }
+    
+    return c.json(successResponse(null, 'Event deleted successfully'));
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    return c.json(errorResponse('Failed to delete event', 500), 500);
+  }
+});
+
+// ============================================================================
+// RESTAURANTS ROUTES
+// ============================================================================
+
+// Get all restaurants (with filters)
+app.get("/make-server-fd8c4bf7/restaurants", async (c) => {
+  try {
+    // Query Postgres (single source of truth - NO auto-seed)
+    const search = c.req.query('search');
+    const cuisine = c.req.query('cuisine');
+    const area = c.req.query('area');
+    const minRating = c.req.query('minRating');
+    
+    let restaurants;
+    if (search) {
+      restaurants = await dbRestaurants.search(search);
+    } else {
+      restaurants = await dbRestaurants.getAll({ 
+        cuisine, 
+        area,
+        minRating: minRating ? parseFloat(minRating) : undefined
+      });
+    }
+    
+    return c.json(successResponse(restaurants));
+  } catch (error) {
+    console.error('Error fetching restaurants:', error);
+    return c.json(errorResponse('Failed to fetch restaurants', 500), 500);
+  }
+});
+
+// Get single restaurant
+app.get("/make-server-fd8c4bf7/restaurants/:id", async (c) => {
+  try {
+    const restaurantId = c.req.param('id');
+    const restaurant = await dbRestaurants.getById(restaurantId);
+    
+    if (!restaurant) {
+      return c.json(errorResponse('Restaurant not found', 404), 404);
+    }
+    
+    return c.json(successResponse(restaurant));
+  } catch (error) {
+    console.error('Error fetching restaurant:', error);
+    return c.json(errorResponse('Failed to fetch restaurant', 500), 500);
+  }
+});
+
+// Create restaurant
+app.post("/make-server-fd8c4bf7/restaurants", async (c) => {
+  try {
+    const body = await c.req.json();
+    
+    // Validate required fields
+    if (!body.name) {
+      return c.json(errorResponse('Restaurant name is required', 400), 400);
+    }
+
+    const restaurant = await dbRestaurants.create(body);
+    
+    return c.json(successResponse(restaurant, 'Restaurant created successfully'), 201);
+  } catch (error) {
+    console.error('Error creating restaurant:', error);
+    return c.json(errorResponse('Failed to create restaurant', 500), 500);
+  }
+});
+
+// Update restaurant
+app.put("/make-server-fd8c4bf7/restaurants/:id", async (c) => {
+  try {
+    const restaurantId = c.req.param('id');
+    const body = await c.req.json();
+    
+    const restaurant = await dbRestaurants.update(restaurantId, body);
+    
+    if (!restaurant) {
+      return c.json(errorResponse('Restaurant not found', 404), 404);
+    }
+    
+    return c.json(successResponse(restaurant, 'Restaurant updated successfully'));
+  } catch (error) {
+    console.error('Error updating restaurant:', error);
+    return c.json(errorResponse('Failed to update restaurant', 500), 500);
+  }
+});
+
+// Delete restaurant (soft delete)
+app.delete("/make-server-fd8c4bf7/restaurants/:id", async (c) => {
+  try {
+    const restaurantId = c.req.param('id');
+    
+    const deleted = await dbRestaurants.softDelete(restaurantId);
+    
+    if (!deleted) {
+      return c.json(errorResponse('Restaurant not found', 404), 404);
+    }
+    
+    return c.json(successResponse(null, 'Restaurant deleted successfully'));
+  } catch (error) {
+    console.error('Error deleting restaurant:', error);
+    return c.json(errorResponse('Failed to delete restaurant', 500), 500);
+  }
+});
+
+// ============================================================================
+// RENTALS ROUTES
+// ============================================================================
+
+// Get all rentals (with filters)
+app.get("/make-server-fd8c4bf7/rentals", async (c) => {
+  try {
+    // Query Postgres (single source of truth - NO auto-seed)
+    const search = c.req.query('search');
+    const rental_type = c.req.query('rental_type');
+    const area = c.req.query('area');
+    const maxPrice = c.req.query('maxPrice');
+    
+    let rentals;
+    if (search) {
+      rentals = await dbRentals.search(search);
+    } else {
+      rentals = await dbRentals.getAll({ 
+        rental_type, 
+        area,
+        maxPrice: maxPrice ? parseFloat(maxPrice) : undefined
+      });
+    }
+    
+    return c.json(successResponse(rentals));
+  } catch (error) {
+    console.error('Error fetching rentals:', error);
+    return c.json(errorResponse('Failed to fetch rentals', 500), 500);
+  }
+});
+
+// Get single rental
+app.get("/make-server-fd8c4bf7/rentals/:id", async (c) => {
+  try {
+    const rentalId = c.req.param('id');
+    const rental = await dbRentals.getById(rentalId);
+    
+    if (!rental) {
+      return c.json(errorResponse('Rental not found', 404), 404);
+    }
+    
+    return c.json(successResponse(rental));
+  } catch (error) {
+    console.error('Error fetching rental:', error);
+    return c.json(errorResponse('Failed to fetch rental', 500), 500);
+  }
+});
+
+// Create rental
+app.post("/make-server-fd8c4bf7/rentals", async (c) => {
+  try {
+    const body = await c.req.json();
+    
+    // Validate required fields
+    if (!body.name) {
+      return c.json(errorResponse('Rental name is required', 400), 400);
+    }
+
+    const rental = await dbRentals.create(body);
+    
+    return c.json(successResponse(rental, 'Rental created successfully'), 201);
+  } catch (error) {
+    console.error('Error creating rental:', error);
+    return c.json(errorResponse('Failed to create rental', 500), 500);
+  }
+});
+
+// Update rental
+app.put("/make-server-fd8c4bf7/rentals/:id", async (c) => {
+  try {
+    const rentalId = c.req.param('id');
+    const body = await c.req.json();
+    
+    const rental = await dbRentals.update(rentalId, body);
+    
+    if (!rental) {
+      return c.json(errorResponse('Rental not found', 404), 404);
+    }
+    
+    return c.json(successResponse(rental, 'Rental updated successfully'));
+  } catch (error) {
+    console.error('Error updating rental:', error);
+    return c.json(errorResponse('Failed to update rental', 500), 500);
+  }
+});
+
+// Delete rental (soft delete)
+app.delete("/make-server-fd8c4bf7/rentals/:id", async (c) => {
+  try {
+    const rentalId = c.req.param('id');
+    
+    const deleted = await dbRentals.softDelete(rentalId);
+    
+    if (!deleted) {
+      return c.json(errorResponse('Rental not found', 404), 404);
+    }
+    
+    return c.json(successResponse(null, 'Rental deleted successfully'));
+  } catch (error) {
+    console.error('Error deleting rental:', error);
+    return c.json(errorResponse('Failed to delete rental', 500), 500);
+  }
+});
+
+// ============================================================================
+// UNIFIED SEARCH ROUTE
+// ============================================================================
+
+app.get("/make-server-fd8c4bf7/locations/search", async (c) => {
+  try {
+    const query = c.req.query('q');
+    const category = c.req.query('category') as 'event' | 'restaurant' | 'rental' | undefined;
+    
+    if (!query) {
+      return c.json(errorResponse('Query parameter is required', 400), 400);
+    }
+
+    // Search across all entity types using new services
+    let results: any[] = [];
+    
+    if (category === 'event') {
+      results = await dbEvents.search(query);
+    } else if (category === 'restaurant') {
+      results = await dbRestaurants.search(query);
+    } else if (category === 'rental') {
+      results = await dbRentals.search(query);
+    } else {
+      // Search across all categories
+      const [events, restaurants, rentals] = await Promise.all([
+        dbEvents.search(query),
+        dbRestaurants.search(query),
+        dbRentals.search(query),
+      ]);
+      results = [...events, ...restaurants, ...rentals];
+    }
+    
+    return c.json(successResponse(results));
+  } catch (error) {
+    console.error('Error searching locations:', error);
+    return c.json(errorResponse('Failed to search locations', 500), 500);
   }
 });
 

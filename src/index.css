@@ -112,6 +112,7 @@
     --color-amber-900: oklch(.414 .112 45.904);
     --color-amber-950: oklch(.279 .077 45.635);
     --color-yellow-300: oklch(.905 .182 98.111);
+    --color-yellow-400: oklch(.852 .199 91.936);
     --color-yellow-500: oklch(.795 .184 86.047);
     --color-yellow-600: oklch(.681 .162 75.834);
     --color-green-50: oklch(.982 .018 155.826);
@@ -5124,10 +5125,6 @@
     fill: var(--color-amber-400);
   }
 
-  .fill-amber-700 {
-    fill: var(--color-amber-700);
-  }
-
   .fill-current {
     fill: currentColor;
   }
@@ -5152,6 +5149,10 @@
 
   .fill-red-500 {
     fill: var(--color-red-500);
+  }
+
+  .fill-yellow-400 {
+    fill: var(--color-yellow-400);
   }
 
   .object-cover {
@@ -6143,6 +6144,10 @@
     .text-white\/90 {
       color: color-mix(in oklab, var(--color-white) 90%, transparent);
     }
+  }
+
+  .text-yellow-400 {
+    color: var(--color-yellow-400);
   }
 
   .text-yellow-500 {
@@ -8163,6 +8168,10 @@
 
   .focus\:border-emerald-500:focus {
     border-color: var(--color-emerald-500);
+  }
+
+  .focus\:border-transparent:focus {
+    border-color: #0000;
   }
 
   .focus\:bg-accent:focus {

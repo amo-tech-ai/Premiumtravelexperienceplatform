@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { MessageSquare, Briefcase, Compass, Heart, Bell, Zap, PlusSquare, Menu, LogOut, Sparkles, Home } from 'lucide-react';
+import { MessageSquare, Briefcase, Compass, Heart, Bell, Zap, PlusSquare, Menu, LogOut, Sparkles, Home, Calendar, Utensils, Car } from 'lucide-react';
 import { cn } from '../../lib/utils/utils';
 import { Button } from '../ui/button';
 import { motion } from 'motion/react';
 import { useWizard } from '../../context/WizardContext';
 
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, NavLink } from 'react-router-dom';
 
 interface SidebarProps {
   className?: string;
@@ -21,6 +21,9 @@ export function Sidebar({ className }: SidebarProps) {
     { icon: MessageSquare, label: 'Chats', path: '/chats', count: 2 },
     { icon: Briefcase, label: 'Trips', path: '/itineraries' },
     { icon: Compass, label: 'Explore', path: '/explore' },
+    { icon: Calendar, label: 'Events', path: '/events' },
+    { icon: Utensils, label: 'Restaurants', path: '/restaurants' },
+    { icon: Car, label: 'Rentals', path: '/rentals' },
     { icon: Heart, label: 'Saved', path: '/saved' },
     { icon: Sparkles, label: 'Concierge', path: '/concierge' },
   ];

@@ -26,11 +26,12 @@ import { WizardProvider } from './context/WizardContext';
 import { TripProvider } from './context/TripContext';
 import { AIWizardBridge } from './components/ai/AIWizardBridge';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { Toaster } from './components/ui/sonner';
 
 import { AppShell } from './components/layout/AppShell';
 
-import RestaurantDetailPage from './pages/RestaurantDetail';
-import EventDetailPage from './pages/EventDetail';
+import OldRestaurantDetailPage from './pages/RestaurantDetail';
+import OldEventDetailPage from './pages/EventDetail';
 import StyleGuidePage from './pages/StyleGuide';
 import ArchitecturePage from './pages/Architecture'; // Internal Docs
 import HowItWorksPage from './pages/HowItWorks'; // Public Page
@@ -55,6 +56,18 @@ import TripDetailPage from './pages/app/TripDetailPage';
 import WhatsNewPage from './pages/WhatsNew';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+
+// Events, Restaurants, Rentals imports
+import EventsPage from './pages/events/EventsPage';
+import EventDetailPage from './pages/events/EventDetailPage';
+import CreateEventPage from './pages/events/CreateEventPage';
+import RestaurantsPage from './pages/restaurants/RestaurantsPage';
+import RestaurantDetailPage from './pages/restaurants/RestaurantDetailPage';
+import CreateRestaurantPage from './pages/restaurants/CreateRestaurantPage';
+import RentalsPage from './pages/rentals/RentalsPage';
+import RentalDetailPage from './pages/rentals/RentalDetailPage';
+import CreateRentalPage from './pages/rentals/CreateRentalPage';
+import { RequireAuth } from './components/auth/RequireAuth';
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -125,8 +138,8 @@ function App() {
                         <Route path="/concierge" element={<Concierge />} />
                         <Route path="/wizard/:category" element={<WizardFlow />} />
                         <Route path="/results" element={<Results />} />
-                        <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
-                        <Route path="/experiences/:id" element={<EventDetailPage />} />
+                        {/* Legacy route - kept for backwards compatibility, redirects handled in component */}
+                        <Route path="/experiences/:id" element={<OldEventDetailPage />} />
                         <Route path="/experiences/medellin/la-deriva" element={<ExperienceDetailPage />} />
                         
                         {/* Real Estate Routes */}
@@ -157,11 +170,25 @@ function App() {
                         <Route path="/ai-demo" element={<AdvancedAIDemo />} />
                         <Route path="/slider-demo" element={<SliderDemo />} />
                         
+                        {/* Events Routes - /create BEFORE /:eventId to avoid shadowing */}
+                        <Route path="/events" element={<EventsPage />} />
+                        <Route path="/events/create" element={<RequireAuth><CreateEventPage /></RequireAuth>} />
+                        <Route path="/events/:eventId" element={<EventDetailPage />} />
+                        
+                        {/* Restaurants Routes - /create BEFORE /:restaurantId to avoid shadowing */}
+                        <Route path="/restaurants" element={<RestaurantsPage />} />
+                        <Route path="/restaurants/create" element={<RequireAuth><CreateRestaurantPage /></RequireAuth>} />
+                        <Route path="/restaurants/:restaurantId" element={<RestaurantDetailPage />} />
+                        
+                        {/* Rentals Routes - /create BEFORE /:rentalId to avoid shadowing */}
+                        <Route path="/rentals" element={<RentalsPage />} />
+                        <Route path="/rentals/create" element={<RequireAuth><CreateRentalPage /></RequireAuth>} />
+                        <Route path="/rentals/:rentalId" element={<RentalDetailPage />} />
+                        
                         {/* New Routes Alias */}
                         <Route path="/explore" element={<ExplorePage />} />
                         <Route path="/chats" element={<ChatsPage />} />
                         <Route path="/itineraries" element={<Dashboard />} />
-                        <Route path="/events" element={<ExplorePage />} />
                         <Route path="/saved" element={<SavedPlacesPage />} />
                         <Route path="/collections" element={<SavedPlacesPage />} />
                         <Route path="/trip/:id" element={<TripDetailsPage />} />
@@ -183,6 +210,7 @@ function App() {
                       <AIWizardBridge />
                     </AppShell>
                     <InstallPrompt />
+                    <Toaster position="top-right" richColors />
                   </WizardProvider>
                 </ErrorBoundary>
               </TripProvider>

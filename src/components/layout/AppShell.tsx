@@ -23,10 +23,13 @@ export function AppShell({ children, className }: AppShellProps) {
     '/itineraries', 
     '/chats', 
     '/saved', 
-    '/explore', 
+    '/explore',
     '/concierge',
     '/collections',
     '/trip/',
+    '/events',
+    '/restaurants',
+    '/rentals',
     '/app/' // All app routes use sidebar layout
   ];
   
