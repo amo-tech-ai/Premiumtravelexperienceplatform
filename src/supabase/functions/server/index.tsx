@@ -5,6 +5,7 @@ import { stream } from "npm:hono/streaming";
 import * as kv from "./kv_store.tsx";
 import * as db from "./database-setup.tsx";
 import { getAIService } from "./ai-service.tsx";
+import * as jobService from "./job-service.ts";
 
 const app = new Hono();
 
@@ -390,6 +391,115 @@ app.post("/make-server-fd8c4bf7/collections/:collectionId/places/:placeId", asyn
 
 // ============================================================================
 // AI / SEARCH ROUTES (Placeholder - will be implemented in Phase 3)
+// ============================================================================
+
+// ============================================================================
+// JOB QUEUE ROUTES - ASYNC OPERATIONS
+// ============================================================================
+
+// Create a new job
+app.post("/make-server-fd8c4bf7/jobs", async (c) => {
+  try {
+    const userId = getUserId(c.req);
+    const body = await c.req.json();
+    
+    const { type, input } = body;
+    
+    if (!type || !input) {
+      return c.json(errorResponse('Type and input are required', 400), 400);
+    }
+    
+    // Create job
+    const job = await jobService.createJob(userId, { type, input });
+    
+    // Start processing in background (don't await)
+    jobService.processJob(job.id).catch(error => {
+      console.error(`Background job ${job.id} failed:`, error);
+    });
+    
+    return c.json(successResponse(job, 'Job created and processing'), 201);
+  } catch (error) {
+    console.error('Error creating job:', error);
+    return c.json(errorResponse('Failed to create job', 500), 500);
+  }
+});
+
+// Get job status
+app.get("/make-server-fd8c4bf7/jobs/:id", async (c) => {
+  try {
+    const jobId = c.req.param('id');
+    const job = await jobService.getJob(jobId);
+    
+    if (!job) {
+      return c.json(errorResponse('Job not found', 404), 404);
+    }
+    
+    return c.json(successResponse(job));
+  } catch (error) {
+    console.error('Error fetching job:', error);
+    return c.json(errorResponse('Failed to fetch job', 500), 500);
+  }
+});
+
+// Get all jobs for user
+app.get("/make-server-fd8c4bf7/jobs", async (c) => {
+  try {
+    const userId = getUserId(c.req);
+    const jobs = await jobService.getUserJobs(userId);
+    
+    return c.json(successResponse(jobs));
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    return c.json(errorResponse('Failed to fetch jobs', 500), 500);
+  }
+});
+
+// Cancel a job
+app.post("/make-server-fd8c4bf7/jobs/:id/cancel", async (c) => {
+  try {
+    const jobId = c.req.param('id');
+    const job = await jobService.cancelJob(jobId);
+    
+    if (!job) {
+      return c.json(errorResponse('Job not found', 404), 404);
+    }
+    
+    return c.json(successResponse(job, 'Job cancelled'));
+  } catch (error) {
+    console.error('Error cancelling job:', error);
+    return c.json(errorResponse('Failed to cancel job', 500), 500);
+  }
+});
+
+// Delete a job
+app.delete("/make-server-fd8c4bf7/jobs/:id", async (c) => {
+  try {
+    const userId = getUserId(c.req);
+    const jobId = c.req.param('id');
+    
+    await jobService.deleteJob(userId, jobId);
+    
+    return c.json(successResponse(null, 'Job deleted'));
+  } catch (error) {
+    console.error('Error deleting job:', error);
+    return c.json(errorResponse('Failed to delete job', 500), 500);
+  }
+});
+
+// Cleanup expired jobs (cron endpoint)
+app.post("/make-server-fd8c4bf7/jobs/cleanup", async (c) => {
+  try {
+    const cleaned = await jobService.cleanupExpiredJobs();
+    
+    return c.json(successResponse({ cleaned }, `Cleaned up ${cleaned} jobs`));
+  } catch (error) {
+    console.error('Error cleaning up jobs:', error);
+    return c.json(errorResponse('Failed to cleanup jobs', 500), 500);
+  }
+});
+
+// ============================================================================
+// AI / SEARCH ROUTES
 // ============================================================================
 
 // AI chat endpoint - PRODUCTION READY
