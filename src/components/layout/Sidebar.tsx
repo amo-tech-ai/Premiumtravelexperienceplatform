@@ -1,6 +1,6 @@
-import React from 'react';
-import { MessageSquare, Briefcase, Compass, Heart, Bell, Zap, PlusSquare, Menu, LogOut, Sparkles } from 'lucide-react';
-import { cn } from '../ui/utils';
+import React, { useState } from 'react';
+import { MessageSquare, Briefcase, Compass, Heart, Bell, Zap, PlusSquare, Menu, LogOut, Sparkles, Home } from 'lucide-react';
+import { cn } from '../../lib/utils/utils';
 import { Button } from '../ui/button';
 import { motion } from 'motion/react';
 import { useWizard } from '../../context/WizardContext';
@@ -17,6 +17,7 @@ export function Sidebar({ className }: SidebarProps) {
   const location = useLocation();
   
   const navItems = [
+    { icon: Home, label: 'Home', path: '/' },
     { icon: MessageSquare, label: 'Chats', path: '/chats', count: 2 },
     { icon: Briefcase, label: 'Trips', path: '/itineraries' },
     { icon: Compass, label: 'Explore', path: '/explore' },
@@ -41,7 +42,9 @@ export function Sidebar({ className }: SidebarProps) {
       {/* Nav Items */}
       <nav className="flex-1 space-y-1 px-3">
         {navItems.map((item) => {
-          const isActive = location.pathname.startsWith(item.path);
+          const isActive = item.path === '/' 
+            ? location.pathname === '/' 
+            : location.pathname.startsWith(item.path);
           return (
             <button
               key={item.label}

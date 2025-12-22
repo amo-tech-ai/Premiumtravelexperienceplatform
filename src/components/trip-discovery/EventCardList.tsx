@@ -1,7 +1,7 @@
 import React from 'react';
-import { Calendar, Ticket, Plus, Check } from 'lucide-react';
+import { Calendar, Users, Star, ArrowRight } from 'lucide-react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 import { Button } from '../ui/button';
 
 export interface Event {

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Clock, Map, Check } from 'lucide-react';
+import { MapPin, Clock, DollarSign, Star, Check, Plus } from 'lucide-react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { Button } from '../ui/button';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 
 export interface Experience {
   id: string;
@@ -25,7 +25,7 @@ export function ExperienceCardList({ experiences, onAdd, onHover, onLeave, saved
     <div className="space-y-4">
       <div className="flex items-center justify-between px-1">
         <h3 className="text-xl font-serif font-semibold text-emerald-950 flex items-center gap-2">
-          <Map className="w-5 h-5 text-emerald-700" />
+          <MapPin className="w-5 h-5 text-emerald-700" />
           Top Things To Do
         </h3>
         <Button variant="link" className="text-emerald-700 h-auto p-0">See all</Button>

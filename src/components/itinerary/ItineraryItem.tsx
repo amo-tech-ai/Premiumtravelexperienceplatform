@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { GripVertical, Clock, Sparkles, MapPin, Ticket, ExternalLink } from 'lucide-react';
 import { motion } from 'motion/react';

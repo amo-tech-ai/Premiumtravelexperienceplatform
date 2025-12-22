@@ -5,6 +5,7 @@ import HomeV2 from './pages/HomeV2';
 import SliderDemo from './pages/SliderDemo';
 import MedellinExperiencesPage from './pages/MedellinExperiences';
 import ExperienceDetailPage from './pages/ExperienceDetail';
+import ExperiencesIndex from './pages/ExperiencesIndex';
 import Explorer from './pages/Explorer';
 import Concierge from './pages/Concierge';
 import RealEstateHome from './pages/real-estate/RealEstateHome';
@@ -52,6 +53,8 @@ import TripsPage from './pages/app/TripsPage';
 import ConciergePage from './pages/app/ConciergePage';
 import TripDetailPage from './pages/app/TripDetailPage';
 import WhatsNewPage from './pages/WhatsNew';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -114,6 +117,7 @@ function App() {
                       <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/home-v2" element={<HomeV2 />} />
+                        <Route path="/experiences" element={<ExperiencesIndex />} />
                         <Route path="/experiences/medellin" element={<MedellinExperiencesPage />} />
                         <Route path="/map" element={<Explorer />} />
                         <Route path="/concierge" element={<Concierge />} />
@@ -166,6 +170,10 @@ function App() {
                         <Route path="/app/concierge" element={<ConciergePage />} />
                         <Route path="/app/trip/:id" element={<TripDetailPage />} />
                         <Route path="/app/whats-new" element={<WhatsNewPage />} />
+
+                        {/* Legal Pages */}
+                        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                        <Route path="/terms-of-service" element={<TermsOfService />} />
 
                         {/* 404 Route */}
                         <Route path="*" element={<NotFound />} />

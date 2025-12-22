@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Heart, PlusSquare, Star, MapPin, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { motion, AnimatePresence } from 'motion/react';
 

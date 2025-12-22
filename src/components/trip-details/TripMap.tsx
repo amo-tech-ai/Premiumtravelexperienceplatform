@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useTripDetails } from './TripDetailsContext';
 import { MapPin, Navigation, Map as MapIcon } from 'lucide-react';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { Button } from '../ui/button';
 

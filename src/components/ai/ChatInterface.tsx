@@ -1,15 +1,13 @@
-import { useRef, useEffect, useState } from "react";
-import { Send, Sparkles, MapPin, DollarSign, Users, Calendar } from "lucide-react";
-import { useAI } from "../../context/AIContext";
-import { useWizard } from "../../context/WizardContext";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { motion, AnimatePresence } from "motion/react";
-import { cn } from "../ui/utils";
+import React, { useState, useEffect, useRef } from 'react';
+import { Send, X, Sparkles, MapPin, Calendar, Users } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
+import { motion, AnimatePresence } from 'motion/react';
+import { useAI } from '../../context/AIContext';
+import { cn } from '../../lib/utils/utils';
 
 export function ChatInterface() {
   const { messages, sendMessage, isTyping, injectMessage } = useAI();
-  const { updateFilters, filters, setIntent } = useWizard();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -29,17 +27,17 @@ export function ChatInterface() {
     if (budgetMatch) {
       const amount = parseInt(budgetMatch[1]);
       if (!isNaN(amount)) {
-        updateFilters({ budget: { ...filters.budget, max: amount } });
+        injectMessage({ role: "system", content: `Budget set to under $${amount}.` });
         actionTaken = true;
       }
     }
 
     // 2. Guest/Context Detection
     if (lower.includes('couple') || lower.includes('date')) {
-      updateFilters({ guests: 2, tags: [...filters.tags, 'Romantic'] });
+      injectMessage({ role: "system", content: "Context set to a romantic date night for two." });
       actionTaken = true;
     } else if (lower.includes('party') || lower.includes('group')) {
-      updateFilters({ guests: 4, tags: [...filters.tags, 'Nightlife'] });
+      injectMessage({ role: "system", content: "Context set to a group event for four." });
       actionTaken = true;
     }
 
@@ -47,7 +45,7 @@ export function ChatInterface() {
     const locations = ['poblado', 'laureles', 'envigado', 'centro'];
     const foundLoc = locations.find(l => lower.includes(l));
     if (foundLoc) {
-        updateFilters({ location: { ...filters.location!, address: foundLoc.charAt(0).toUpperCase() + foundLoc.slice(1) } });
+        injectMessage({ role: "system", content: `Location set to ${foundLoc.charAt(0).toUpperCase() + foundLoc.slice(1)}.` });
         actionTaken = true;
     }
 

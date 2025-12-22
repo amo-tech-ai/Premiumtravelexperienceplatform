@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { cn } from "../ui/utils";
+import { cn } from "../../lib/utils/utils";
 import { Home, Compass, Building, Map } from "lucide-react";
 
 export function BottomNav() {

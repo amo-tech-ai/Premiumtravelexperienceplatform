@@ -43,6 +43,7 @@ export function Footer() {
                   What's New ✨
                 </Link>
               </li>
+              <li><Link to="/experiences" className="hover:text-white transition-colors">Experiences</Link></li>
               <li><Link to="/explore" className="hover:text-white transition-colors">Explore Map</Link></li>
               <li><Link to="/app/concierge" className="hover:text-white transition-colors">AI Concierge</Link></li>
               <li><Link to="/explore" className="hover:text-white transition-colors">Events</Link></li>
@@ -102,8 +103,8 @@ export function Footer() {
         <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
           <p>© 2025 Medellín AI Concierge. All rights reserved.</p>
           <div className="flex gap-6">
-            <Link to="/privacy" className="hover:text-slate-300">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-slate-300">Terms of Service</Link>
+            <Link to="/privacy-policy" className="hover:text-slate-300">Privacy Policy</Link>
+            <Link to="/terms-of-service" className="hover:text-slate-300">Terms of Service</Link>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Calendar as CalendarIcon, Users, Wallet } from 'lucide-react';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 
 interface PlannerSidebarProps {

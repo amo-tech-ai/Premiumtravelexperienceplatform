@@ -8,7 +8,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { generateMockTrip, LocalEvent, MOCK_LOCAL_EVENTS } from '../../utils/mockTripData';
 import { ItineraryActivity } from './ItineraryItem';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 import { BookingFlow } from '../booking/BookingFlow';
 import { LocalEventsHub } from '../events/LocalEventsHub';
 import { EventDetailSheet } from '../events/EventDetailSheet';

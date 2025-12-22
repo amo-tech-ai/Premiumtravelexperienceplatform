@@ -12,7 +12,7 @@ import { Button } from '../ui/button';
 import { getGeminiClient } from '../../lib/ai/gemini-client';
 import { getEventBus } from '../../lib/ai/event-bus';
 import { APIKeyModal } from '../settings/APIKeyModal';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 
 interface AgentStatus {
   name: string;

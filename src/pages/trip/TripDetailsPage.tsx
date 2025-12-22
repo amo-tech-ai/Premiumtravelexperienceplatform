@@ -1,14 +1,5 @@
-import React, { useState } from 'react';
-import { ItineraryFeed } from '../../components/trip-details/ItineraryFeed';
-import { TripSidebar } from '../../components/trip-details/TripSidebar';
-import { TripDetailsProvider, useTripDetails } from '../../components/trip-details/TripDetailsContext';
-import { Sheet, SheetContent, SheetTrigger } from '../../components/ui/sheet';
-import { Button } from '../../components/ui/button';
-import { Layout } from 'lucide-react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useParams } from 'react-router-dom';
-import { cn } from '../../components/ui/utils';
+import { cn } from '../../lib/utils/utils';
 
 import { AIItineraryBridge } from '../../components/trip-details/AIItineraryBridge';
 

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Calendar, Users, MapPin, MoreHorizontal, Plus, GripVertical, Clock, Coffee, CheckCircle, Share, Sparkles, DollarSign, Wand2, TrendingUp, BarChart3, Edit2 } from 'lucide-react';
 import { Button } from '../ui/button';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { useTripDetails } from './TripDetailsContext';
 import { useDrop, useDrag } from 'react-dnd';

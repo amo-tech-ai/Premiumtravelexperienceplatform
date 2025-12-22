@@ -10,7 +10,7 @@ import { PlaceCard } from '../../components/explore/PlaceCard';
 import { PlaceDetailDrawer } from '../../components/explore/PlaceDetailDrawer';
 import { useTrip } from '../../context/TripContext';
 import { toast } from 'sonner@2.0.3';
-import { cn } from '../../components/ui/utils';
+import { cn } from '../../lib/utils/utils';
 
 // --- Mock Data for Saved Places (Synced with TripContext) ---
 const SAVED_PLACES = [

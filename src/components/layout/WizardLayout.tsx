@@ -1,12 +1,13 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { Link, useLocation } from 'react-router-dom';
-import { X, ChevronLeft } from 'lucide-react';
+import React, { ReactNode } from 'react';
+import { Button } from '../ui/button';
+import { ArrowLeft, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useWizard } from '../../context/WizardContext';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
+import { motion } from 'motion/react';
 
 interface WizardLayoutProps {
-  children: React.ReactNode;
+  children: ReactNode;
   title?: string;
   showBack?: boolean;
   onBack?: () => void;
@@ -19,7 +20,7 @@ export const WizardLayout = ({
   onBack 
 }: WizardLayoutProps) => {
   const { ui } = useWizard();
-  const location = useLocation();
+  const navigate = useNavigate();
 
   // Calculate progress percentage
   const progress = ((ui.currentStep + 1) / ui.totalSteps) * 100;
@@ -34,7 +35,7 @@ export const WizardLayout = ({
               onClick={onBack}
               className="p-2 hover:bg-black/5 rounded-full transition-colors"
             >
-              <ChevronLeft className="w-5 h-5 text-emerald-900" />
+              <ArrowLeft className="w-5 h-5 text-emerald-900" />
             </button>
           )}
           {title && (
@@ -45,12 +46,13 @@ export const WizardLayout = ({
         </div>
 
         <div className="flex items-center gap-4">
-          <Link to="/">
-            <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-emerald-900 transition-colors rounded-full hover:bg-black/5">
-              <span className="hidden sm:inline">Exit Planning</span>
-              <X className="w-4 h-4" />
-            </button>
-          </Link>
+          <Button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-emerald-900 transition-colors rounded-full hover:bg-black/5"
+          >
+            <span className="hidden sm:inline">Exit Planning</span>
+            <X className="w-4 h-4" />
+          </Button>
         </div>
       </header>
 

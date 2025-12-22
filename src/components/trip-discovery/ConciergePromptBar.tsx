@@ -1,7 +1,7 @@
-import React from 'react';
-import { Send, Mic, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sparkles, Send } from 'lucide-react';
 import { Button } from '../ui/button';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 
 interface ConciergePromptBarProps {
   onSearch: (query: string) => void;
@@ -16,7 +16,7 @@ const QUICK_ACTIONS = [
 ];
 
 export function ConciergePromptBar({ onSearch, className }: ConciergePromptBarProps) {
-  const [query, setQuery] = React.useState('');
+  const [query, setQuery] = useState('');
 
   return (
     <div className={cn("w-full max-w-3xl mx-auto space-y-4", className)}>
@@ -39,9 +39,6 @@ export function ConciergePromptBar({ onSearch, className }: ConciergePromptBarPr
         />
 
         <div className="flex items-center gap-1 pr-1">
-          <Button variant="ghost" size="icon" className="text-emerald-900/60 hover:text-emerald-900 hover:bg-emerald-50">
-            <Mic className="w-5 h-5" />
-          </Button>
           <Button 
             onClick={() => onSearch(query)}
             className="bg-emerald-900 hover:bg-emerald-800 text-white rounded-xl h-10 w-10 p-0 shadow-lg shadow-emerald-900/20 transition-all hover:scale-105 active:scale-95"

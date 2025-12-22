@@ -17,7 +17,10 @@ import {
   CheckCircle2,
   ArrowRight,
   Code2,
-  Rocket
+  Rocket,
+  Layout,
+  MapPin,
+  Shield
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -83,35 +86,119 @@ export default function WhatsNewPage() {
         },
       ],
     },
+    {
+      category: 'Global Infrastructure',
+      icon: Layout,
+      color: 'from-blue-500 to-indigo-500',
+      items: [
+        {
+          title: 'Universal Footer System',
+          description: 'Global footer now appears on all marketing pages with smart conditional rendering - no more missing footers',
+          status: 'Live',
+          action: 'View Footer',
+          route: '/real-estate',
+        },
+        {
+          title: 'Calm Design System',
+          description: 'Updated What\'s New page with luxury calm aesthetic - soft backgrounds, editorial typography, no neon colors',
+          status: 'Live',
+          action: 'See Design',
+          route: '/app/whats-new',
+        },
+        {
+          title: 'Navigation Enhancement',
+          description: 'Complete navigation system with Home link in sidebar, proper active states, and unified routing',
+          status: 'Live',
+          action: 'Explore Nav',
+          route: '/',
+        },
+      ],
+    },
+    {
+      category: 'Experiences & Content',
+      icon: MapPin,
+      color: 'from-orange-500 to-amber-500',
+      items: [
+        {
+          title: 'Experiences Hub',
+          description: 'New landing page showcasing curated experiences across Medellín, Cartagena, and Bogotá with category filters',
+          status: 'New',
+          action: 'Browse Experiences',
+          route: '/experiences',
+        },
+        {
+          title: 'Medellín Experiences',
+          description: 'Fully functional experience listings for Medellín with grid/map views, filters, and beautiful cards',
+          status: 'Live',
+          action: 'View Medellín',
+          route: '/experiences/medellin',
+        },
+        {
+          title: 'Real Estate Coverage',
+          description: 'Complete real estate section now includes footer, market insights, property search, and detailed listings',
+          status: 'Live',
+          action: 'View Properties',
+          route: '/real-estate',
+        },
+      ],
+    },
+    {
+      category: 'Legal & Compliance',
+      icon: Shield,
+      color: 'from-slate-500 to-stone-500',
+      items: [
+        {
+          title: 'Privacy Policy',
+          description: 'Comprehensive privacy policy covering data collection, usage, security, and user rights in professional format',
+          status: 'New',
+          action: 'Read Policy',
+          route: '/privacy-policy',
+        },
+        {
+          title: 'Terms of Service',
+          description: 'Complete terms of service with usage license, prohibited uses, AI content disclaimers, and liability terms',
+          status: 'New',
+          action: 'Read Terms',
+          route: '/terms-of-service',
+        },
+        {
+          title: 'Footer Legal Links',
+          description: 'Updated footer with proper legal navigation linking to privacy policy and terms of service',
+          status: 'Live',
+          action: 'Check Footer',
+          route: '/',
+        },
+      ],
+    },
   ];
 
   const stats = [
     { label: 'Production Ready', value: '100%', icon: CheckCircle2 },
-    { label: 'AI Agents', value: '6', icon: Zap },
-    { label: 'Form Fields', value: '9', icon: Code2 },
-    { label: 'Lines of Code', value: '1,500+', icon: Code2 },
+    { label: 'New Features', value: '21', icon: Sparkles },
+    { label: 'New Pages', value: '3', icon: Layout },
+    { label: 'Feature Categories', value: '5', icon: Code2 },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-white to-stone-50">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzBoLTZ2LTZoNnYtNmg2djZoNnY2aC02djZoLTZ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-10" />
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-stone-100 to-slate-100">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzBoLTZ2LTZoNnYtNmg2djZoNnYyaC02djZoLTZ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
         
         <div className="container relative mx-auto px-6 py-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center text-white"
+            className="text-center"
           >
-            <Badge className="mb-4 bg-white/20 text-white border-white/30 backdrop-blur">
+            <Badge className="mb-4 bg-stone-200 text-stone-700 border-stone-300">
               December 21, 2024
             </Badge>
-            <h1 className="mb-4 font-serif text-5xl md:text-6xl">
+            <h1 className="mb-4 font-serif text-5xl md:text-6xl text-stone-900">
               What's New
             </h1>
-            <p className="mx-auto mb-8 max-w-2xl text-xl text-white/90">
-              Your Trip Operating System is now <span className="font-bold">100% production-ready</span> with real AI integration and complete activity management
+            <p className="mx-auto mb-8 max-w-2xl text-xl text-stone-600">
+              Your Trip Operating System is now <span className="font-bold text-stone-900">100% production-ready</span> with real AI integration and complete activity management
             </p>
 
             {/* Stats */}
@@ -122,11 +209,11 @@ export default function WhatsNewPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-6"
+                  className="rounded-xl bg-white backdrop-blur border border-stone-200 p-6 shadow-sm"
                 >
-                  <stat.icon className="mx-auto mb-2 h-8 w-8 text-white/80" />
-                  <div className="text-3xl font-bold text-white">{stat.value}</div>
-                  <div className="text-sm text-white/70">{stat.label}</div>
+                  <stat.icon className="mx-auto mb-2 h-8 w-8 text-stone-600" />
+                  <div className="text-3xl font-bold text-stone-900">{stat.value}</div>
+                  <div className="text-sm text-stone-600">{stat.label}</div>
                 </motion.div>
               ))}
             </div>

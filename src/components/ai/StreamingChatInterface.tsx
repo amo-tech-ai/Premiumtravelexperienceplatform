@@ -10,7 +10,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { ScrollArea } from '../ui/scroll-area';
 import { getGeminiClient } from '../../lib/ai/gemini-client';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 
 interface Message {
   id: string;

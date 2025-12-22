@@ -1,8 +1,8 @@
 import React from 'react';
-import { Star, MapPin, BedDouble, CheckCircle } from 'lucide-react';
+import { MapPin, Star, Home, ChevronRight, Check, Plus } from 'lucide-react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { Button } from '../ui/button';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 
 export interface Stay {
   id: string;
@@ -27,7 +27,7 @@ export function StayRecommendationList({ stays, onAdd, onHover, onLeave, savedId
     <div className="space-y-4">
       <div className="flex items-center justify-between px-1">
         <h3 className="text-xl font-serif font-semibold text-emerald-950 flex items-center gap-2">
-          <BedDouble className="w-5 h-5 text-emerald-700" />
+          <Home className="w-5 h-5 text-emerald-700" />
           Where to Stay
         </h3>
         <Button variant="link" className="text-emerald-700 h-auto p-0">See all</Button>

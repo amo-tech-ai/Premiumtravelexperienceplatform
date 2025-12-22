@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useRef, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { MapPin, Layers, Plus, Minus, Navigation, Ticket, Music, Utensils, BedDouble, Landmark } from 'lucide-react';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 import { Button } from '../ui/button';
 
 interface SmartPlace {

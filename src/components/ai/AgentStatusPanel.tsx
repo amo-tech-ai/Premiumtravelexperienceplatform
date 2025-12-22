@@ -1,20 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { 
-  Compass, 
-  Utensils, 
-  Map, 
-  Plane, 
-  Calendar, 
-  DollarSign,
-  CheckCircle2,
-  Circle,
-  ChevronDown,
-  ChevronUp,
-  Sparkles
-} from 'lucide-react';
 import { Button } from '../ui/button';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 
 interface Agent {
   id: string;

@@ -50,6 +50,7 @@
           "react-dnd-html5-backend": "*",
           "react-dom": "^18.3.1",
           "react-hook-form": "^7.55.0",
+          "react-leaflet": "*",
           "react-resizable-panels": "^2.1.7",
           "react-responsive-masonry": "*",
           "react-router-dom": "*",

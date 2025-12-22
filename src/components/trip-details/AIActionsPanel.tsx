@@ -1,8 +1,5 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Zap, Calendar, Map, DollarSign, AlertTriangle, CheckCircle, X, ChevronRight, Cloud, TrendingUp } from 'lucide-react';
 import { Button } from '../ui/button';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 import { useTripDetails } from './TripDetailsContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
 import { ScrollArea } from '../ui/scroll-area';

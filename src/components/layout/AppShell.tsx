@@ -1,14 +1,14 @@
-import { ReactNode } from "react";
+import { Menu, X } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { TopNav } from "./TopNav";
 import { BottomNav } from "./BottomNav";
-import { Footer } from "./Footer";
 import { Sidebar } from "./Sidebar";
-import { cn } from "../ui/utils";
+import { Footer } from "./Footer";
+import { cn } from "../../lib/utils/utils";
 import { ConciergeFab } from "../ai/ConciergeFab";
 import { ConciergeOverlay } from "../ai/ConciergeOverlay";
 import { TripCreateModal } from "../trip-wizard/TripCreateModal";
 import { Toaster } from "../ui/sonner";
-import { useLocation } from "react-router-dom";
 import { QuickAccessMenu } from "../navigation/QuickAccessMenu";
 
 interface AppShellProps {
@@ -27,10 +27,34 @@ export function AppShell({ children, className }: AppShellProps) {
     '/explore', 
     '/concierge',
     '/collections',
-    '/trip/'
+    '/trip/',
+    '/app/' // All app routes use sidebar layout
+  ];
+  
+  // Routes that should NOT show the footer
+  const noFooterRoutes = [
+    '/itineraries',
+    '/chats',
+    '/saved',
+    '/explore',
+    '/concierge',
+    '/collections',
+    '/trip/',
+    '/app/',
+    '/map',
+    '/wizard/',
+    '/results',
+    '/dashboard',
+    '/profile',
+    '/style-guide',
+    '/architecture',
+    '/status',
+    '/features',
+    '/ai-demo'
   ];
   
   const showSidebar = sidebarRoutes.some(route => location.pathname.startsWith(route));
+  const showFooter = !noFooterRoutes.some(route => location.pathname.startsWith(route));
   
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20 flex flex-col">
@@ -48,11 +72,11 @@ export function AppShell({ children, className }: AppShellProps) {
         </main>
       </div>
 
-      {!showSidebar && <Footer />}
+      {!showSidebar && <BottomNav />}
+      {showFooter && <Footer />}
       <ConciergeFab />
       <ConciergeOverlay />
       <TripCreateModal />
-      <BottomNav />
       <QuickAccessMenu />
       <Toaster />
     </div>

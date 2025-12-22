@@ -27,7 +27,7 @@ import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 import { useAdvancedAI } from '../../hooks/useAdvancedAI';
-import { cn } from '../ui/utils';
+import { cn } from '../../lib/utils/utils';
 import { toast } from 'sonner@2.0.3';
 
 export const AdvancedAIDemo = () => {
