@@ -1,11 +1,11 @@
 /**
  * DB Events Service
  * 
- * Uses Supabase locations table with category='event'
- * All queries filter by category to get only events
+ * Uses Figma Make's KV Store (kv_store_fd8c4bf7 table)
+ * Keys pattern: "event:{id}" for individual events
  */
 
-import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
+import * as kv from "./kv_store.tsx";
 
 // ============================================================================
 // TYPES
@@ -51,14 +51,19 @@ export interface Event {
 }
 
 // ============================================================================
-// SUPABASE CLIENT
+// HELPER FUNCTIONS
 // ============================================================================
 
-function getSupabaseAdmin() {
-  return createClient(
-    Deno.env.get("SUPABASE_URL") || "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
-  );
+function generateId(): string {
+  return crypto.randomUUID();
+}
+
+function eventKey(id: string): string {
+  return `event:${id}`;
+}
+
+function eventIndexKey(): string {
+  return 'events:index';
 }
 
 // ============================================================================
@@ -71,37 +76,47 @@ export async function getAll(filters?: {
   area?: string;
 }): Promise<Event[]> {
   try {
-    const supabase = getSupabaseAdmin();
+    // Get all event IDs from index
+    const eventIds = await kv.get(eventIndexKey()) as string[] || [];
     
-    let query = supabase
-      .from('locations')
-      .select('*')
-      .eq('category', 'event')
-      .eq('is_active', true)
-      .order('event_start_time', { ascending: true });
+    if (eventIds.length === 0) {
+      console.log('⚠️ No events found in KV store');
+      return [];
+    }
+    
+    // Get all events
+    const eventKeys = eventIds.map(id => eventKey(id));
+    const events = await kv.mget(eventKeys) as Event[];
+    
+    // Filter active events
+    let results = events.filter(e => e && e.is_active);
     
     // Apply filters
     if (filters?.category) {
-      query = query.eq('event_type', filters.category);
+      results = results.filter(e => e.event_type === filters.category);
     }
     
     if (filters?.search) {
-      query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+      const searchLower = filters.search.toLowerCase();
+      results = results.filter(e => 
+        e.name?.toLowerCase().includes(searchLower) ||
+        e.description?.toLowerCase().includes(searchLower)
+      );
     }
     
     if (filters?.area) {
-      query = query.eq('city', filters.area);
+      results = results.filter(e => e.city === filters.area);
     }
     
-    const { data, error } = await query;
+    // Sort by start time
+    results.sort((a, b) => {
+      if (!a.event_start_time) return 1;
+      if (!b.event_start_time) return -1;
+      return new Date(a.event_start_time).getTime() - new Date(b.event_start_time).getTime();
+    });
     
-    if (error) {
-      console.error('Error fetching events:', JSON.stringify(error));
-      throw error;
-    }
-    
-    console.log(`✅ Fetched ${data?.length || 0} events from locations table`);
-    return (data as Event[]) || [];
+    console.log(`✅ Fetched ${results.length} events from KV store`);
+    return results;
   } catch (error) {
     console.error('Error in getAll events:', JSON.stringify(error));
     return [];
@@ -114,23 +129,13 @@ export async function getAll(filters?: {
 
 export async function getById(id: string): Promise<Event | null> {
   try {
-    const supabase = getSupabaseAdmin();
+    const event = await kv.get(eventKey(id)) as Event | null;
     
-    const { data, error } = await supabase
-      .from('locations')
-      .select('*')
-      .eq('id', id)
-      .eq('category', 'event')
-      .eq('is_active', true)
-      .single();
-    
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      console.error('Error fetching event:', JSON.stringify(error));
-      throw error;
+    if (!event || !event.is_active) {
+      return null;
     }
     
-    return data as Event;
+    return event;
   } catch (error) {
     console.error('Error in getById event:', JSON.stringify(error));
     return null;
@@ -143,28 +148,44 @@ export async function getById(id: string): Promise<Event | null> {
 
 export async function create(data: Partial<Event>): Promise<Event> {
   try {
-    const supabase = getSupabaseAdmin();
+    const id = generateId();
+    const now = new Date().toISOString();
     
-    const eventData = {
-      ...data,
-      category: 'event' as const,
-      source: data.details?.source || 'manual',
+    const event: Event = {
+      id,
+      name: data.name || 'Untitled Event',
+      description: data.description || null,
+      category: 'event',
+      subcategory: data.subcategory || null,
+      tags: data.tags || [],
+      address: data.address || null,
+      city: data.city || null,
+      latitude: data.latitude || null,
+      longitude: data.longitude || null,
+      event_start_time: data.event_start_time || null,
+      event_end_time: data.event_end_time || null,
+      event_type: data.event_type || null,
+      ticket_url: data.ticket_url || null,
+      primary_image_url: data.primary_image_url || null,
+      images: data.images || null,
+      details: data.details || null,
+      rating: data.rating || null,
+      rating_count: data.rating_count || null,
       is_active: true,
+      created_at: now,
+      updated_at: now,
     };
     
-    const { data: created, error } = await supabase
-      .from('locations')
-      .insert(eventData)
-      .select()
-      .single();
+    // Save event
+    await kv.set(eventKey(id), event);
     
-    if (error) {
-      console.error('Error creating event:', JSON.stringify(error));
-      throw error;
-    }
+    // Update index
+    const eventIds = await kv.get(eventIndexKey()) as string[] || [];
+    eventIds.push(id);
+    await kv.set(eventIndexKey(), eventIds);
     
-    console.log(`✅ Created event: ${created.name}`);
-    return created as Event;
+    console.log(`✅ Created event: ${event.name}`);
+    return event;
   } catch (error) {
     console.error('Error in create event:', JSON.stringify(error));
     throw error;
@@ -177,24 +198,24 @@ export async function create(data: Partial<Event>): Promise<Event> {
 
 export async function update(id: string, data: Partial<Event>): Promise<Event | null> {
   try {
-    const supabase = getSupabaseAdmin();
+    const existing = await kv.get(eventKey(id)) as Event | null;
     
-    const { data: updated, error } = await supabase
-      .from('locations')
-      .update(data)
-      .eq('id', id)
-      .eq('category', 'event')
-      .select()
-      .single();
-    
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      console.error('Error updating event:', JSON.stringify(error));
-      throw error;
+    if (!existing) {
+      return null;
     }
     
+    const updated: Event = {
+      ...existing,
+      ...data,
+      id, // Ensure ID doesn't change
+      category: 'event', // Ensure category doesn't change
+      updated_at: new Date().toISOString(),
+    };
+    
+    await kv.set(eventKey(id), updated);
+    
     console.log(`✅ Updated event: ${updated.name}`);
-    return updated as Event;
+    return updated;
   } catch (error) {
     console.error('Error in update event:', JSON.stringify(error));
     return null;
@@ -207,18 +228,19 @@ export async function update(id: string, data: Partial<Event>): Promise<Event | 
 
 export async function softDelete(id: string): Promise<boolean> {
   try {
-    const supabase = getSupabaseAdmin();
+    const existing = await kv.get(eventKey(id)) as Event | null;
     
-    const { error } = await supabase
-      .from('locations')
-      .update({ is_active: false })
-      .eq('id', id)
-      .eq('category', 'event');
-    
-    if (error) {
-      console.error('Error soft deleting event:', JSON.stringify(error));
+    if (!existing) {
       return false;
     }
+    
+    const updated: Event = {
+      ...existing,
+      is_active: false,
+      updated_at: new Date().toISOString(),
+    };
+    
+    await kv.set(eventKey(id), updated);
     
     console.log(`✅ Soft deleted event: ${id}`);
     return true;
@@ -234,22 +256,14 @@ export async function softDelete(id: string): Promise<boolean> {
 
 export async function search(query: string): Promise<Event[]> {
   try {
-    const supabase = getSupabaseAdmin();
+    const allEvents = await getAll();
+    const searchLower = query.toLowerCase();
     
-    const { data, error } = await supabase
-      .from('locations')
-      .select('*')
-      .eq('category', 'event')
-      .eq('is_active', true)
-      .or(`name.ilike.%${query}%,description.ilike.%${query}%,event_type.ilike.%${query}%`)
-      .order('event_start_time', { ascending: true });
-    
-    if (error) {
-      console.error('Error searching events:', JSON.stringify(error));
-      return [];
-    }
-    
-    return (data as Event[]) || [];
+    return allEvents.filter(e =>
+      e.name?.toLowerCase().includes(searchLower) ||
+      e.description?.toLowerCase().includes(searchLower) ||
+      e.event_type?.toLowerCase().includes(searchLower)
+    );
   } catch (error) {
     console.error('Error in search events:', JSON.stringify(error));
     return [];

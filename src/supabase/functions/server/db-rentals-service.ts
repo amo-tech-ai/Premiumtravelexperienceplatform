@@ -1,11 +1,11 @@
 /**
  * DB Rentals Service
  * 
- * Uses Supabase locations table with category='rental'
- * All queries filter by category to get only rentals
+ * Uses Figma Make's KV Store (kv_store_fd8c4bf7 table)
+ * Keys pattern: "rental:{id}" for individual rentals
  */
 
-import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
+import * as kv from "./kv_store.tsx";
 
 // ============================================================================
 // TYPES
@@ -51,14 +51,19 @@ export interface Rental {
 }
 
 // ============================================================================
-// SUPABASE CLIENT
+// HELPER FUNCTIONS
 // ============================================================================
 
-function getSupabaseAdmin() {
-  return createClient(
-    Deno.env.get("SUPABASE_URL") || "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
-  );
+function generateId(): string {
+  return crypto.randomUUID();
+}
+
+function rentalKey(id: string): string {
+  return `rental:${id}`;
+}
+
+function rentalIndexKey(): string {
+  return 'rentals:index';
 }
 
 // ============================================================================
@@ -71,37 +76,47 @@ export async function getAll(filters?: {
   area?: string;
 }): Promise<Rental[]> {
   try {
-    const supabase = getSupabaseAdmin();
+    // Get all rental IDs from index
+    const rentalIds = await kv.get(rentalIndexKey()) as string[] || [];
     
-    let query = supabase
-      .from('locations')
-      .select('*')
-      .eq('category', 'rental')
-      .eq('is_active', true)
-      .order('rating', { ascending: false, nullsFirst: false });
+    if (rentalIds.length === 0) {
+      console.log('⚠️ No rentals found in KV store');
+      return [];
+    }
+    
+    // Get all rentals
+    const rentalKeys = rentalIds.map(id => rentalKey(id));
+    const rentals = await kv.mget(rentalKeys) as Rental[];
+    
+    // Filter active rentals
+    let results = rentals.filter(r => r && r.is_active);
     
     // Apply filters
     if (filters?.type) {
-      query = query.eq('vehicle_type', filters.type);
+      results = results.filter(r => r.vehicle_type === filters.type);
     }
     
     if (filters?.search) {
-      query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+      const searchLower = filters.search.toLowerCase();
+      results = results.filter(r => 
+        r.name?.toLowerCase().includes(searchLower) ||
+        r.description?.toLowerCase().includes(searchLower)
+      );
     }
     
     if (filters?.area) {
-      query = query.eq('city', filters.area);
+      results = results.filter(r => r.city === filters.area);
     }
     
-    const { data, error } = await query;
+    // Sort by rating
+    results.sort((a, b) => {
+      const ratingA = a.rating || 0;
+      const ratingB = b.rating || 0;
+      return ratingB - ratingA;
+    });
     
-    if (error) {
-      console.error('Error fetching rentals:', JSON.stringify(error));
-      throw error;
-    }
-    
-    console.log(`✅ Fetched ${data?.length || 0} rentals from locations table`);
-    return (data as Rental[]) || [];
+    console.log(`✅ Fetched ${results.length} rentals from KV store`);
+    return results;
   } catch (error) {
     console.error('Error in getAll rentals:', JSON.stringify(error));
     return [];
@@ -114,23 +129,13 @@ export async function getAll(filters?: {
 
 export async function getById(id: string): Promise<Rental | null> {
   try {
-    const supabase = getSupabaseAdmin();
+    const rental = await kv.get(rentalKey(id)) as Rental | null;
     
-    const { data, error } = await supabase
-      .from('locations')
-      .select('*')
-      .eq('id', id)
-      .eq('category', 'rental')
-      .eq('is_active', true)
-      .single();
-    
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      console.error('Error fetching rental:', JSON.stringify(error));
-      throw error;
+    if (!rental || !rental.is_active) {
+      return null;
     }
     
-    return data as Rental;
+    return rental;
   } catch (error) {
     console.error('Error in getById rental:', JSON.stringify(error));
     return null;
@@ -143,28 +148,44 @@ export async function getById(id: string): Promise<Rental | null> {
 
 export async function create(data: Partial<Rental>): Promise<Rental> {
   try {
-    const supabase = getSupabaseAdmin();
+    const id = generateId();
+    const now = new Date().toISOString();
     
-    const rentalData = {
-      ...data,
-      category: 'rental' as const,
-      source: data.details?.source || 'manual',
+    const rental: Rental = {
+      id,
+      name: data.name || 'Untitled Rental',
+      description: data.description || null,
+      category: 'rental',
+      subcategory: data.subcategory || null,
+      tags: data.tags || [],
+      address: data.address || null,
+      city: data.city || null,
+      latitude: data.latitude || null,
+      longitude: data.longitude || null,
+      vehicle_type: data.vehicle_type || null,
+      rental_features: data.rental_features || null,
+      hourly_rate: data.hourly_rate || null,
+      daily_rate: data.daily_rate || null,
+      primary_image_url: data.primary_image_url || null,
+      images: data.images || null,
+      details: data.details || null,
+      rating: data.rating || null,
+      rating_count: data.rating_count || null,
       is_active: true,
+      created_at: now,
+      updated_at: now,
     };
     
-    const { data: created, error } = await supabase
-      .from('locations')
-      .insert(rentalData)
-      .select()
-      .single();
+    // Save rental
+    await kv.set(rentalKey(id), rental);
     
-    if (error) {
-      console.error('Error creating rental:', JSON.stringify(error));
-      throw error;
-    }
+    // Update index
+    const rentalIds = await kv.get(rentalIndexKey()) as string[] || [];
+    rentalIds.push(id);
+    await kv.set(rentalIndexKey(), rentalIds);
     
-    console.log(`✅ Created rental: ${created.name}`);
-    return created as Rental;
+    console.log(`✅ Created rental: ${rental.name}`);
+    return rental;
   } catch (error) {
     console.error('Error in create rental:', JSON.stringify(error));
     throw error;
@@ -177,24 +198,24 @@ export async function create(data: Partial<Rental>): Promise<Rental> {
 
 export async function update(id: string, data: Partial<Rental>): Promise<Rental | null> {
   try {
-    const supabase = getSupabaseAdmin();
+    const existing = await kv.get(rentalKey(id)) as Rental | null;
     
-    const { data: updated, error } = await supabase
-      .from('locations')
-      .update(data)
-      .eq('id', id)
-      .eq('category', 'rental')
-      .select()
-      .single();
-    
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      console.error('Error updating rental:', JSON.stringify(error));
-      throw error;
+    if (!existing) {
+      return null;
     }
     
+    const updated: Rental = {
+      ...existing,
+      ...data,
+      id, // Ensure ID doesn't change
+      category: 'rental', // Ensure category doesn't change
+      updated_at: new Date().toISOString(),
+    };
+    
+    await kv.set(rentalKey(id), updated);
+    
     console.log(`✅ Updated rental: ${updated.name}`);
-    return updated as Rental;
+    return updated;
   } catch (error) {
     console.error('Error in update rental:', JSON.stringify(error));
     return null;
@@ -207,18 +228,19 @@ export async function update(id: string, data: Partial<Rental>): Promise<Rental 
 
 export async function softDelete(id: string): Promise<boolean> {
   try {
-    const supabase = getSupabaseAdmin();
+    const existing = await kv.get(rentalKey(id)) as Rental | null;
     
-    const { error } = await supabase
-      .from('locations')
-      .update({ is_active: false })
-      .eq('id', id)
-      .eq('category', 'rental');
-    
-    if (error) {
-      console.error('Error soft deleting rental:', JSON.stringify(error));
+    if (!existing) {
       return false;
     }
+    
+    const updated: Rental = {
+      ...existing,
+      is_active: false,
+      updated_at: new Date().toISOString(),
+    };
+    
+    await kv.set(rentalKey(id), updated);
     
     console.log(`✅ Soft deleted rental: ${id}`);
     return true;
@@ -234,22 +256,14 @@ export async function softDelete(id: string): Promise<boolean> {
 
 export async function search(query: string): Promise<Rental[]> {
   try {
-    const supabase = getSupabaseAdmin();
+    const allRentals = await getAll();
+    const searchLower = query.toLowerCase();
     
-    const { data, error } = await supabase
-      .from('locations')
-      .select('*')
-      .eq('category', 'rental')
-      .eq('is_active', true)
-      .or(`name.ilike.%${query}%,description.ilike.%${query}%,vehicle_type.ilike.%${query}%`)
-      .order('rating', { ascending: false, nullsFirst: false });
-    
-    if (error) {
-      console.error('Error searching rentals:', JSON.stringify(error));
-      return [];
-    }
-    
-    return (data as Rental[]) || [];
+    return allRentals.filter(r =>
+      r.name?.toLowerCase().includes(searchLower) ||
+      r.description?.toLowerCase().includes(searchLower) ||
+      r.vehicle_type?.toLowerCase().includes(searchLower)
+    );
   } catch (error) {
     console.error('Error in search rentals:', JSON.stringify(error));
     return [];

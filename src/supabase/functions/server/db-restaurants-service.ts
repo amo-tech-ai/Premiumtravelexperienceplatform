@@ -1,11 +1,11 @@
 /**
  * DB Restaurants Service
  * 
- * Uses Supabase locations table with category='restaurant'
- * All queries filter by category to get only restaurants
+ * Uses Figma Make's KV Store (kv_store_fd8c4bf7 table)
+ * Keys pattern: "restaurant:{id}" for individual restaurants
  */
 
-import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
+import * as kv from "./kv_store.tsx";
 
 // ============================================================================
 // TYPES
@@ -55,14 +55,19 @@ export interface Restaurant {
 }
 
 // ============================================================================
-// SUPABASE CLIENT
+// HELPER FUNCTIONS
 // ============================================================================
 
-function getSupabaseAdmin() {
-  return createClient(
-    Deno.env.get("SUPABASE_URL") || "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
-  );
+function generateId(): string {
+  return crypto.randomUUID();
+}
+
+function restaurantKey(id: string): string {
+  return `restaurant:${id}`;
+}
+
+function restaurantIndexKey(): string {
+  return 'restaurants:index';
 }
 
 // ============================================================================
@@ -75,37 +80,49 @@ export async function getAll(filters?: {
   area?: string;
 }): Promise<Restaurant[]> {
   try {
-    const supabase = getSupabaseAdmin();
+    // Get all restaurant IDs from index
+    const restaurantIds = await kv.get(restaurantIndexKey()) as string[] || [];
     
-    let query = supabase
-      .from('locations')
-      .select('*')
-      .eq('category', 'restaurant')
-      .eq('is_active', true)
-      .order('rating', { ascending: false, nullsFirst: false });
+    if (restaurantIds.length === 0) {
+      console.log('⚠️ No restaurants found in KV store');
+      return [];
+    }
+    
+    // Get all restaurants
+    const restaurantKeys = restaurantIds.map(id => restaurantKey(id));
+    const restaurants = await kv.mget(restaurantKeys) as Restaurant[];
+    
+    // Filter active restaurants
+    let results = restaurants.filter(r => r && r.is_active);
     
     // Apply filters
     if (filters?.cuisine) {
-      query = query.contains('cuisine_types', [filters.cuisine]);
+      results = results.filter(r => 
+        r.cuisine_types?.includes(filters.cuisine!)
+      );
     }
     
     if (filters?.search) {
-      query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+      const searchLower = filters.search.toLowerCase();
+      results = results.filter(r => 
+        r.name?.toLowerCase().includes(searchLower) ||
+        r.description?.toLowerCase().includes(searchLower)
+      );
     }
     
     if (filters?.area) {
-      query = query.eq('city', filters.area);
+      results = results.filter(r => r.city === filters.area);
     }
     
-    const { data, error } = await query;
+    // Sort by rating
+    results.sort((a, b) => {
+      const ratingA = a.rating || 0;
+      const ratingB = b.rating || 0;
+      return ratingB - ratingA;
+    });
     
-    if (error) {
-      console.error('Error fetching restaurants:', JSON.stringify(error));
-      throw error;
-    }
-    
-    console.log(`✅ Fetched ${data?.length || 0} restaurants from locations table`);
-    return (data as Restaurant[]) || [];
+    console.log(`✅ Fetched ${results.length} restaurants from KV store`);
+    return results;
   } catch (error) {
     console.error('Error in getAll restaurants:', JSON.stringify(error));
     return [];
@@ -118,23 +135,13 @@ export async function getAll(filters?: {
 
 export async function getById(id: string): Promise<Restaurant | null> {
   try {
-    const supabase = getSupabaseAdmin();
+    const restaurant = await kv.get(restaurantKey(id)) as Restaurant | null;
     
-    const { data, error } = await supabase
-      .from('locations')
-      .select('*')
-      .eq('id', id)
-      .eq('category', 'restaurant')
-      .eq('is_active', true)
-      .single();
-    
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      console.error('Error fetching restaurant:', JSON.stringify(error));
-      throw error;
+    if (!restaurant || !restaurant.is_active) {
+      return null;
     }
     
-    return data as Restaurant;
+    return restaurant;
   } catch (error) {
     console.error('Error in getById restaurant:', JSON.stringify(error));
     return null;
@@ -147,28 +154,46 @@ export async function getById(id: string): Promise<Restaurant | null> {
 
 export async function create(data: Partial<Restaurant>): Promise<Restaurant> {
   try {
-    const supabase = getSupabaseAdmin();
+    const id = generateId();
+    const now = new Date().toISOString();
     
-    const restaurantData = {
-      ...data,
-      category: 'restaurant' as const,
-      source: data.details?.source || 'manual',
+    const restaurant: Restaurant = {
+      id,
+      name: data.name || 'Untitled Restaurant',
+      description: data.description || null,
+      category: 'restaurant',
+      subcategory: data.subcategory || null,
+      tags: data.tags || [],
+      address: data.address || null,
+      city: data.city || null,
+      latitude: data.latitude || null,
+      longitude: data.longitude || null,
+      cuisine_types: data.cuisine_types || null,
+      price_level: data.price_level || null,
+      dietary_options: data.dietary_options || null,
+      ambiance: data.ambiance || null,
+      primary_image_url: data.primary_image_url || null,
+      images: data.images || null,
+      details: data.details || null,
+      rating: data.rating || null,
+      rating_count: data.rating_count || null,
+      hours_of_operation: data.hours_of_operation || null,
+      is_open_now: data.is_open_now || null,
       is_active: true,
+      created_at: now,
+      updated_at: now,
     };
     
-    const { data: created, error } = await supabase
-      .from('locations')
-      .insert(restaurantData)
-      .select()
-      .single();
+    // Save restaurant
+    await kv.set(restaurantKey(id), restaurant);
     
-    if (error) {
-      console.error('Error creating restaurant:', JSON.stringify(error));
-      throw error;
-    }
+    // Update index
+    const restaurantIds = await kv.get(restaurantIndexKey()) as string[] || [];
+    restaurantIds.push(id);
+    await kv.set(restaurantIndexKey(), restaurantIds);
     
-    console.log(`✅ Created restaurant: ${created.name}`);
-    return created as Restaurant;
+    console.log(`✅ Created restaurant: ${restaurant.name}`);
+    return restaurant;
   } catch (error) {
     console.error('Error in create restaurant:', JSON.stringify(error));
     throw error;
@@ -181,24 +206,24 @@ export async function create(data: Partial<Restaurant>): Promise<Restaurant> {
 
 export async function update(id: string, data: Partial<Restaurant>): Promise<Restaurant | null> {
   try {
-    const supabase = getSupabaseAdmin();
+    const existing = await kv.get(restaurantKey(id)) as Restaurant | null;
     
-    const { data: updated, error } = await supabase
-      .from('locations')
-      .update(data)
-      .eq('id', id)
-      .eq('category', 'restaurant')
-      .select()
-      .single();
-    
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      console.error('Error updating restaurant:', JSON.stringify(error));
-      throw error;
+    if (!existing) {
+      return null;
     }
     
+    const updated: Restaurant = {
+      ...existing,
+      ...data,
+      id, // Ensure ID doesn't change
+      category: 'restaurant', // Ensure category doesn't change
+      updated_at: new Date().toISOString(),
+    };
+    
+    await kv.set(restaurantKey(id), updated);
+    
     console.log(`✅ Updated restaurant: ${updated.name}`);
-    return updated as Restaurant;
+    return updated;
   } catch (error) {
     console.error('Error in update restaurant:', JSON.stringify(error));
     return null;
@@ -211,18 +236,19 @@ export async function update(id: string, data: Partial<Restaurant>): Promise<Res
 
 export async function softDelete(id: string): Promise<boolean> {
   try {
-    const supabase = getSupabaseAdmin();
+    const existing = await kv.get(restaurantKey(id)) as Restaurant | null;
     
-    const { error } = await supabase
-      .from('locations')
-      .update({ is_active: false })
-      .eq('id', id)
-      .eq('category', 'restaurant');
-    
-    if (error) {
-      console.error('Error soft deleting restaurant:', JSON.stringify(error));
+    if (!existing) {
       return false;
     }
+    
+    const updated: Restaurant = {
+      ...existing,
+      is_active: false,
+      updated_at: new Date().toISOString(),
+    };
+    
+    await kv.set(restaurantKey(id), updated);
     
     console.log(`✅ Soft deleted restaurant: ${id}`);
     return true;
@@ -238,22 +264,13 @@ export async function softDelete(id: string): Promise<boolean> {
 
 export async function search(query: string): Promise<Restaurant[]> {
   try {
-    const supabase = getSupabaseAdmin();
+    const allRestaurants = await getAll();
+    const searchLower = query.toLowerCase();
     
-    const { data, error } = await supabase
-      .from('locations')
-      .select('*')
-      .eq('category', 'restaurant')
-      .eq('is_active', true)
-      .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
-      .order('rating', { ascending: false, nullsFirst: false });
-    
-    if (error) {
-      console.error('Error searching restaurants:', JSON.stringify(error));
-      return [];
-    }
-    
-    return (data as Restaurant[]) || [];
+    return allRestaurants.filter(r =>
+      r.name?.toLowerCase().includes(searchLower) ||
+      r.description?.toLowerCase().includes(searchLower)
+    );
   } catch (error) {
     console.error('Error in search restaurants:', JSON.stringify(error));
     return [];
