@@ -1,8 +1,8 @@
 /**
  * DB Restaurants Service
  * 
- * Supabase-first implementation for restaurants table
- * All queries use Postgres with proper joins to locations
+ * Uses Supabase locations table with category='restaurant'
+ * All queries filter by category to get only restaurants
  */
 
 import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
@@ -13,25 +13,45 @@ import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
 
 export interface Restaurant {
   id: string;
-  location_id: string | null;
   name: string;
   description: string | null;
-  cuisine: string | null;
-  price_tier: string | null;
+  category: 'restaurant';
+  subcategory: string | null;
+  tags: string[];
+  
+  // Location
+  address: string | null;
+  city: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  
+  // Restaurant-specific
+  cuisine_types: string[] | null;
+  price_level: number | null;
+  dietary_options: string[] | null;
+  ambiance: string[] | null;
+  
+  // Media
+  primary_image_url: string | null;
+  images: any | null;
+  
+  // Details
+  details: any | null;
+  
+  // Ratings
   rating: number | null;
-  source_url: string | null;
+  rating_count: number | null;
+  
+  // Hours
+  hours_of_operation: any | null;
+  is_open_now: boolean | null;
+  
+  // Status
+  is_active: boolean;
+  
+  // Metadata
   created_at: string;
   updated_at: string;
-  deleted_at: string | null;
-  // Joined location data
-  location?: {
-    id: string;
-    name: string;
-    area: string | null;
-    address: string | null;
-    lat: number | null;
-    lng: number | null;
-  } | null;
 }
 
 // ============================================================================
@@ -53,47 +73,41 @@ export async function getAll(filters?: {
   search?: string;
   cuisine?: string;
   area?: string;
-  minRating?: number;
 }): Promise<Restaurant[]> {
   try {
     const supabase = getSupabaseAdmin();
     
     let query = supabase
-      .from('restaurants')
-      .select(`
-        *,
-        location:locations(id, name, area, address, lat, lng)
-      `)
-      .is('deleted_at', null)
+      .from('locations')
+      .select('*')
+      .eq('category', 'restaurant')
+      .eq('is_active', true)
       .order('rating', { ascending: false, nullsFirst: false });
     
     // Apply filters
     if (filters?.cuisine) {
-      query = query.eq('cuisine', filters.cuisine);
+      query = query.contains('cuisine_types', [filters.cuisine]);
     }
     
     if (filters?.search) {
-      query = query.ilike('name', `%${filters.search}%`);
+      query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
     }
     
     if (filters?.area) {
-      query = query.eq('location.area', filters.area);
-    }
-    
-    if (filters?.minRating) {
-      query = query.gte('rating', filters.minRating);
+      query = query.eq('city', filters.area);
     }
     
     const { data, error } = await query;
     
     if (error) {
-      console.error('Error fetching restaurants:', error);
+      console.error('Error fetching restaurants:', JSON.stringify(error));
       throw error;
     }
     
-    return data as Restaurant[];
+    console.log(`✅ Fetched ${data?.length || 0} restaurants from locations table`);
+    return (data as Restaurant[]) || [];
   } catch (error) {
-    console.error('Error in getAll restaurants:', error);
+    console.error('Error in getAll restaurants:', JSON.stringify(error));
     return [];
   }
 }
@@ -107,24 +121,22 @@ export async function getById(id: string): Promise<Restaurant | null> {
     const supabase = getSupabaseAdmin();
     
     const { data, error } = await supabase
-      .from('restaurants')
-      .select(`
-        *,
-        location:locations(id, name, area, address, lat, lng)
-      `)
+      .from('locations')
+      .select('*')
       .eq('id', id)
-      .is('deleted_at', null)
+      .eq('category', 'restaurant')
+      .eq('is_active', true)
       .single();
     
     if (error) {
       if (error.code === 'PGRST116') return null;
-      console.error('Error fetching restaurant:', error);
+      console.error('Error fetching restaurant:', JSON.stringify(error));
       throw error;
     }
     
     return data as Restaurant;
   } catch (error) {
-    console.error('Error in getById restaurant:', error);
+    console.error('Error in getById restaurant:', JSON.stringify(error));
     return null;
   }
 }
@@ -137,24 +149,28 @@ export async function create(data: Partial<Restaurant>): Promise<Restaurant> {
   try {
     const supabase = getSupabaseAdmin();
     
+    const restaurantData = {
+      ...data,
+      category: 'restaurant' as const,
+      source: data.details?.source || 'manual',
+      is_active: true,
+    };
+    
     const { data: created, error } = await supabase
-      .from('restaurants')
-      .insert(data)
-      .select(`
-        *,
-        location:locations(id, name, area, address, lat, lng)
-      `)
+      .from('locations')
+      .insert(restaurantData)
+      .select()
       .single();
     
     if (error) {
-      console.error('Error creating restaurant:', error);
+      console.error('Error creating restaurant:', JSON.stringify(error));
       throw error;
     }
     
     console.log(`✅ Created restaurant: ${created.name}`);
     return created as Restaurant;
   } catch (error) {
-    console.error('Error in create restaurant:', error);
+    console.error('Error in create restaurant:', JSON.stringify(error));
     throw error;
   }
 }
@@ -168,25 +184,23 @@ export async function update(id: string, data: Partial<Restaurant>): Promise<Res
     const supabase = getSupabaseAdmin();
     
     const { data: updated, error } = await supabase
-      .from('restaurants')
+      .from('locations')
       .update(data)
       .eq('id', id)
-      .select(`
-        *,
-        location:locations(id, name, area, address, lat, lng)
-      `)
+      .eq('category', 'restaurant')
+      .select()
       .single();
     
     if (error) {
       if (error.code === 'PGRST116') return null;
-      console.error('Error updating restaurant:', error);
+      console.error('Error updating restaurant:', JSON.stringify(error));
       throw error;
     }
     
     console.log(`✅ Updated restaurant: ${updated.name}`);
     return updated as Restaurant;
   } catch (error) {
-    console.error('Error in update restaurant:', error);
+    console.error('Error in update restaurant:', JSON.stringify(error));
     return null;
   }
 }
@@ -200,19 +214,20 @@ export async function softDelete(id: string): Promise<boolean> {
     const supabase = getSupabaseAdmin();
     
     const { error } = await supabase
-      .from('restaurants')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id);
+      .from('locations')
+      .update({ is_active: false })
+      .eq('id', id)
+      .eq('category', 'restaurant');
     
     if (error) {
-      console.error('Error soft deleting restaurant:', error);
+      console.error('Error soft deleting restaurant:', JSON.stringify(error));
       return false;
     }
     
     console.log(`✅ Soft deleted restaurant: ${id}`);
     return true;
   } catch (error) {
-    console.error('Error in softDelete restaurant:', error);
+    console.error('Error in softDelete restaurant:', JSON.stringify(error));
     return false;
   }
 }
@@ -226,23 +241,21 @@ export async function search(query: string): Promise<Restaurant[]> {
     const supabase = getSupabaseAdmin();
     
     const { data, error } = await supabase
-      .from('restaurants')
-      .select(`
-        *,
-        location:locations(id, name, area, address, lat, lng)
-      `)
-      .is('deleted_at', null)
-      .or(`name.ilike.%${query}%,description.ilike.%${query}%,cuisine.ilike.%${query}%`)
+      .from('locations')
+      .select('*')
+      .eq('category', 'restaurant')
+      .eq('is_active', true)
+      .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
       .order('rating', { ascending: false, nullsFirst: false });
     
     if (error) {
-      console.error('Error searching restaurants:', error);
+      console.error('Error searching restaurants:', JSON.stringify(error));
       return [];
     }
     
-    return data as Restaurant[];
+    return (data as Restaurant[]) || [];
   } catch (error) {
-    console.error('Error in search restaurants:', error);
+    console.error('Error in search restaurants:', JSON.stringify(error));
     return [];
   }
 }

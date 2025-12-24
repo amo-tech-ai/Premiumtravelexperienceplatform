@@ -120,7 +120,7 @@ export class AnalyticsService {
 
     this.events.push(event);
 
-    console.log('[Analytics] Event:', event);
+    console.log('[Analytics] Event:', JSON.stringify(event, null, 2));
 
     // Flush if batch size reached
     if (this.events.length >= this.batchSize) {
@@ -142,7 +142,7 @@ export class AnalyticsService {
 
     this.pageViews.push(pageView);
 
-    console.log('[Analytics] Page view:', pageView);
+    console.log('[Analytics] Page view:', JSON.stringify(pageView, null, 2));
 
     this.flush();
   }
@@ -160,7 +160,7 @@ export class AnalyticsService {
 
     this.performanceMetrics.push(metric);
 
-    console.log('[Analytics] Performance:', metric);
+    console.log('[Analytics] Performance:', JSON.stringify(metric, null, 2));
   }
 
   /**
@@ -182,7 +182,7 @@ export class AnalyticsService {
 
     this.errorLogs.push(errorLog);
 
-    console.error('[Analytics] Error logged:', errorLog);
+    console.error('[Analytics] Error logged:', JSON.stringify(errorLog, null, 2));
 
     // Flush critical errors immediately
     if (severity === 'critical' || severity === 'high') {
@@ -222,7 +222,7 @@ export class AnalyticsService {
     try {
       // In production, send to analytics backend
       // For now, just log to console and store locally
-      console.log('[Analytics] Flush:', payload);
+      console.log('[Analytics] Flush:', JSON.stringify(payload, null, 2));
 
       // Store in localStorage as backup
       this.storeLocally(payload);

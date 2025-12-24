@@ -1,8 +1,8 @@
 /**
  * DB Events Service
  * 
- * Supabase-first implementation for events table
- * All queries use Postgres with proper joins to locations
+ * Uses Supabase locations table with category='event'
+ * All queries filter by category to get only events
  */
 
 import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
@@ -13,27 +13,41 @@ import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
 
 export interface Event {
   id: string;
-  location_id: string | null;
   name: string;
   description: string | null;
-  category: string | null;
-  price_tier: string | null;
+  category: 'event';
+  subcategory: string | null;
+  tags: string[];
+  
+  // Location
+  address: string | null;
+  city: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  
+  // Event-specific
+  event_start_time: string | null;
+  event_end_time: string | null;
+  event_type: string | null;
+  ticket_url: string | null;
+  
+  // Media
+  primary_image_url: string | null;
+  images: any | null;
+  
+  // Details
+  details: any | null;
+  
+  // Ratings
   rating: number | null;
-  start_time: string | null;
-  end_time: string | null;
-  source_url: string | null;
+  rating_count: number | null;
+  
+  // Status
+  is_active: boolean;
+  
+  // Metadata
   created_at: string;
   updated_at: string;
-  deleted_at: string | null;
-  // Joined location data
-  location?: {
-    id: string;
-    name: string;
-    area: string | null;
-    address: string | null;
-    lat: number | null;
-    lng: number | null;
-  } | null;
 }
 
 // ============================================================================
@@ -60,37 +74,36 @@ export async function getAll(filters?: {
     const supabase = getSupabaseAdmin();
     
     let query = supabase
-      .from('events')
-      .select(`
-        *,
-        location:locations(id, name, area, address, lat, lng)
-      `)
-      .is('deleted_at', null)
-      .order('start_time', { ascending: true });
+      .from('locations')
+      .select('*')
+      .eq('category', 'event')
+      .eq('is_active', true)
+      .order('event_start_time', { ascending: true });
     
     // Apply filters
     if (filters?.category) {
-      query = query.eq('category', filters.category);
+      query = query.eq('event_type', filters.category);
     }
     
     if (filters?.search) {
-      query = query.ilike('name', `%${filters.search}%`);
+      query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
     }
     
     if (filters?.area) {
-      query = query.eq('location.area', filters.area);
+      query = query.eq('city', filters.area);
     }
     
     const { data, error } = await query;
     
     if (error) {
-      console.error('Error fetching events:', error);
+      console.error('Error fetching events:', JSON.stringify(error));
       throw error;
     }
     
-    return data as Event[];
+    console.log(`✅ Fetched ${data?.length || 0} events from locations table`);
+    return (data as Event[]) || [];
   } catch (error) {
-    console.error('Error in getAll events:', error);
+    console.error('Error in getAll events:', JSON.stringify(error));
     return [];
   }
 }
@@ -104,24 +117,22 @@ export async function getById(id: string): Promise<Event | null> {
     const supabase = getSupabaseAdmin();
     
     const { data, error } = await supabase
-      .from('events')
-      .select(`
-        *,
-        location:locations(id, name, area, address, lat, lng)
-      `)
+      .from('locations')
+      .select('*')
       .eq('id', id)
-      .is('deleted_at', null)
+      .eq('category', 'event')
+      .eq('is_active', true)
       .single();
     
     if (error) {
       if (error.code === 'PGRST116') return null;
-      console.error('Error fetching event:', error);
+      console.error('Error fetching event:', JSON.stringify(error));
       throw error;
     }
     
     return data as Event;
   } catch (error) {
-    console.error('Error in getById event:', error);
+    console.error('Error in getById event:', JSON.stringify(error));
     return null;
   }
 }
@@ -134,24 +145,28 @@ export async function create(data: Partial<Event>): Promise<Event> {
   try {
     const supabase = getSupabaseAdmin();
     
+    const eventData = {
+      ...data,
+      category: 'event' as const,
+      source: data.details?.source || 'manual',
+      is_active: true,
+    };
+    
     const { data: created, error } = await supabase
-      .from('events')
-      .insert(data)
-      .select(`
-        *,
-        location:locations(id, name, area, address, lat, lng)
-      `)
+      .from('locations')
+      .insert(eventData)
+      .select()
       .single();
     
     if (error) {
-      console.error('Error creating event:', error);
+      console.error('Error creating event:', JSON.stringify(error));
       throw error;
     }
     
     console.log(`✅ Created event: ${created.name}`);
     return created as Event;
   } catch (error) {
-    console.error('Error in create event:', error);
+    console.error('Error in create event:', JSON.stringify(error));
     throw error;
   }
 }
@@ -165,25 +180,23 @@ export async function update(id: string, data: Partial<Event>): Promise<Event | 
     const supabase = getSupabaseAdmin();
     
     const { data: updated, error } = await supabase
-      .from('events')
+      .from('locations')
       .update(data)
       .eq('id', id)
-      .select(`
-        *,
-        location:locations(id, name, area, address, lat, lng)
-      `)
+      .eq('category', 'event')
+      .select()
       .single();
     
     if (error) {
       if (error.code === 'PGRST116') return null;
-      console.error('Error updating event:', error);
+      console.error('Error updating event:', JSON.stringify(error));
       throw error;
     }
     
     console.log(`✅ Updated event: ${updated.name}`);
     return updated as Event;
   } catch (error) {
-    console.error('Error in update event:', error);
+    console.error('Error in update event:', JSON.stringify(error));
     return null;
   }
 }
@@ -197,19 +210,20 @@ export async function softDelete(id: string): Promise<boolean> {
     const supabase = getSupabaseAdmin();
     
     const { error } = await supabase
-      .from('events')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id);
+      .from('locations')
+      .update({ is_active: false })
+      .eq('id', id)
+      .eq('category', 'event');
     
     if (error) {
-      console.error('Error soft deleting event:', error);
+      console.error('Error soft deleting event:', JSON.stringify(error));
       return false;
     }
     
     console.log(`✅ Soft deleted event: ${id}`);
     return true;
   } catch (error) {
-    console.error('Error in softDelete event:', error);
+    console.error('Error in softDelete event:', JSON.stringify(error));
     return false;
   }
 }
@@ -223,23 +237,21 @@ export async function search(query: string): Promise<Event[]> {
     const supabase = getSupabaseAdmin();
     
     const { data, error } = await supabase
-      .from('events')
-      .select(`
-        *,
-        location:locations(id, name, area, address, lat, lng)
-      `)
-      .is('deleted_at', null)
-      .or(`name.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`)
-      .order('start_time', { ascending: true });
+      .from('locations')
+      .select('*')
+      .eq('category', 'event')
+      .eq('is_active', true)
+      .or(`name.ilike.%${query}%,description.ilike.%${query}%,event_type.ilike.%${query}%`)
+      .order('event_start_time', { ascending: true });
     
     if (error) {
-      console.error('Error searching events:', error);
+      console.error('Error searching events:', JSON.stringify(error));
       return [];
     }
     
-    return data as Event[];
+    return (data as Event[]) || [];
   } catch (error) {
-    console.error('Error in search events:', error);
+    console.error('Error in search events:', JSON.stringify(error));
     return [];
   }
 }
