@@ -3073,10 +3073,6 @@
     border-color: var(--color-purple-200);
   }
 
-  .border-purple-300 {
-    border-color: var(--color-purple-300);
-  }
-
   .border-purple-400 {
     border-color: var(--color-purple-400);
   }
@@ -5787,10 +5783,6 @@
     font-size: 8px;
   }
 
-  .text-\[9px\] {
-    font-size: 9px;
-  }
-
   .text-\[10px\] {
     font-size: 10px;
   }
@@ -6770,10 +6762,6 @@
     --tw-ring-color: var(--color-orange-200);
   }
 
-  .ring-purple-100 {
-    --tw-ring-color: var(--color-purple-100);
-  }
-
   .ring-ring\/50 {
     --tw-ring-color: var(--ring);
   }
@@ -7666,12 +7654,6 @@
       .hover\:border-primary\/50:hover {
         border-color: color-mix(in oklab, var(--primary) 50%, transparent);
       }
-    }
-  }
-
-  @media (hover: hover) {
-    .hover\:border-purple-200:hover {
-      border-color: var(--color-purple-200);
     }
   }
 

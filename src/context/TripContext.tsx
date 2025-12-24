@@ -1,248 +1,723 @@
-import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react';
-import { Event } from '../components/trip-discovery/EventCardList';
-import { Stay } from '../components/trip-discovery/StayRecommendationList';
-import { Experience } from '../components/trip-discovery/ExperienceCardList';
-import { toast } from 'sonner@2.0.3';
+/**
+ * TRIP CONTEXT - Main Context Provider
+ * 
+ * Central state management for the entire Trip Operating System.
+ * Manages: trips, events, restaurants, rentals, destinations, budget, conflicts
+ */
 
-// --- MOCK DATA SOURCE (Moved from Dashboard) ---
-export const INITIAL_EVENTS: Event[] = [
-  {
-    id: 'e1',
-    title: 'Medellín Flower Festival Parade',
-    image: 'https://images.unsplash.com/photo-1596707328607-28d15a97573d?q=80&w=800&auto=format&fit=crop',
-    date: 'This week',
-    popularity: 'Almost sold out',
-    price: '$25',
-    location: 'Avenida Guayabal'
-  },
-  {
-    id: 'e2',
-    title: 'Karol G: Mañana Será Bonito Fest',
-    image: 'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=800&auto=format&fit=crop',
-    date: 'Fri, Dec 22',
-    popularity: 'Selling fast',
-    price: '$80',
-    location: 'Atanasio Girardot Stadium'
-  },
-  {
-    id: 'e3',
-    title: 'Salsa Night at Eslabón Prendido',
-    image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=800&auto=format&fit=crop',
-    date: 'Tonight',
-    price: '$10',
-    location: 'Centro'
-  }
-];
+import React, { createContext, useContext, useState, useEffect, useCallback, useReducer } from 'react';
+import {
+  TripState,
+  Trip,
+  TripEntity,
+  TripDay,
+  Restaurant,
+  Event,
+  Rental,
+  Destination,
+  Budget,
+  UserPreferences,
+  Location,
+  ScheduleConflict
+} from './types/TripTypes';
+import { eventBus, EventType, EntityEventPayload } from './EventBus';
+import { conflictDetector, ConflictDetectionOptions } from './ConflictDetector';
+import { budgetTracker } from './BudgetTracker';
 
-export const INITIAL_STAYS: Stay[] = [
-  {
-    id: 's1',
-    title: 'The Click Clack Hotel Medellín',
-    image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=800&auto=format&fit=crop',
-    rating: 4.8,
-    priceTier: '$$$',
-    area: 'El Poblado',
-    badge: 'Best Match'
-  },
-  {
-    id: 's2',
-    title: 'Elcielo Hotel & Restaurant',
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop',
-    rating: 4.9,
-    priceTier: '$$$$',
-    area: 'El Poblado',
-    badge: 'Luxury Pick'
-  },
-  {
-    id: 's3',
-    title: 'Masaya Medellín',
-    image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=800&auto=format&fit=crop',
-    rating: 4.6,
-    priceTier: '$$',
-    area: 'El Poblado',
-    badge: 'Value'
-  }
-];
+// ============================================================================
+// CONTEXT DEFINITION
+// ============================================================================
 
-export const INITIAL_EXPERIENCES: Experience[] = [
-  {
-    id: 'x1',
-    title: 'Comuna 13 Graffiti Tour & Street Food',
-    image: 'https://images.unsplash.com/photo-1583531352515-8884af319dc1?q=80&w=800&auto=format&fit=crop',
-    duration: '3 hours',
-    fit: 'Easy to fit'
-  },
-  {
-    id: 'x2',
-    title: 'Coffee Farm Tour in Guatape',
-    image: 'https://images.unsplash.com/photo-1626202384351-e1293c683b54?q=80&w=800&auto=format&fit=crop',
-    duration: 'Full day',
-    fit: 'Must see'
-  },
-  {
-    id: 'x3',
-    title: 'Paragliding over San Felix',
-    image: 'https://images.unsplash.com/photo-1475518112798-86ae35e9e620?q=80&w=800&auto=format&fit=crop',
-    duration: '4 hours',
-  }
-];
-
-// --- TYPES ---
-interface SmartPlace {
-  id: string;
-  lat: number;
-  lng: number;
-  title: string;
-  category: 'Events' | 'Stays' | 'Food' | 'Attractions' | 'Nightlife';
-  price?: string;
-  isLuxury?: boolean;
+interface TripContextValue extends TripState {
+  // Trip Management
+  createTrip: (trip: Partial<Trip>) => Trip;
+  updateTrip: (tripId: string, updates: Partial<Trip>) => void;
+  deleteTrip: (tripId: string) => void;
+  setCurrentTrip: (tripId: string | null) => void;
+  
+  // Entity Management
+  addEntity: (entity: TripEntity, date: string, options?: AddEntityOptions) => AddEntityResult;
+  removeEntity: (entityId: string, date: string) => void;
+  updateEntity: (entityId: string, updates: Partial<TripEntity>) => void;
+  
+  // Save/Bookmark
+  saveEntity: (entity: TripEntity) => void;
+  unsaveEntity: (entityId: string, entityType: TripEntity['type']) => void;
+  
+  // Available Items (not yet in trip)
+  setAvailableRestaurants: (restaurants: Restaurant[]) => void;
+  setAvailableEvents: (events: Event[]) => void;
+  setAvailableRentals: (rentals: Rental[]) => void;
+  setAvailableDestinations: (destinations: Destination[]) => void;
+  
+  // Conflict Management
+  checkConflicts: (entity: TripEntity, date: string) => ScheduleConflict[];
+  resolveConflict: (conflictId: string) => void;
+  
+  // Budget
+  getBudget: () => Budget | null;
+  checkBudgetImpact: (entity: TripEntity) => {
+    canAfford: boolean;
+    newTotal: number;
+    remaining: number;
+    alerts: any[];
+  };
+  
+  // Preferences
+  updatePreferences: (preferences: Partial<UserPreferences>) => void;
+  
+  // Utility
+  getDay: (date: string) => TripDay | null;
+  refreshTrip: () => void;
 }
 
-interface TripContextType {
-  // Data
-  events: Event[];
-  stays: Stay[];
-  experiences: Experience[];
-  mapPlaces: SmartPlace[];
-  
-  // State
-  savedIds: string[];
-  activePlaceId: string | null;
-  
-  // Actions
-  addToTrip: (item: Event | Stay | Experience, type: 'event' | 'stay' | 'experience') => void;
-  removeFromTrip: (id: string) => void;
-  setActivePlaceId: (id: string | null) => void;
-  filterByAI: (query: string) => void;
+const TripContext = createContext<TripContextValue | null>(null);
+
+// ============================================================================
+// INITIAL STATE
+// ============================================================================
+
+const defaultPreferences: UserPreferences = {
+  cuisines: [],
+  dietaryRestrictions: [],
+  priceRange: { min: 0, max: 1000 },
+  interests: [],
+  activityLevel: 'moderate',
+  preferredTransport: ['walk', 'taxi'],
+  maxWalkingDistance: 1500,
+  pacing: 'moderate',
+  morningStart: '09:00',
+  eveningEnd: '22:00',
+  accommodationType: ['apartment', 'hotel'],
+  amenitiesRequired: [],
+  language: 'en',
+  currency: 'USD',
+  timezone: 'America/New_York'
+};
+
+const initialState: TripState = {
+  currentTrip: null,
+  trips: [],
+  availableRestaurants: [],
+  availableEvents: [],
+  availableRentals: [],
+  availableDestinations: [],
+  savedItems: {
+    restaurants: [],
+    events: [],
+    rentals: [],
+    destinations: []
+  },
+  userPreferences: defaultPreferences,
+  isLoading: false
+};
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface AddEntityOptions {
+  skipConflictCheck?: boolean;
+  autoResolveConflicts?: boolean;
 }
 
-const TripContext = createContext<TripContextType | undefined>(undefined);
+interface AddEntityResult {
+  success: boolean;
+  conflicts?: ScheduleConflict[];
+  message?: string;
+  updatedEntity?: TripEntity;
+}
 
-export function TripProvider({ children }: { children: ReactNode }) {
-  const [events, setEvents] = useState<Event[]>(INITIAL_EVENTS);
-  const [stays, setStays] = useState<Stay[]>(INITIAL_STAYS);
-  const [experiences, setExperiences] = useState<Experience[]>(INITIAL_EXPERIENCES);
-  const [savedIds, setSavedIds] = useState<string[]>([]);
-  const [activePlaceId, setActivePlaceId] = useState<string | null>(null);
+// ============================================================================
+// PROVIDER COMPONENT
+// ============================================================================
 
-  // Derive Map Places from current data
-  // In a real app, we'd have lat/lng on the source objects. 
-  // For now we map them to the mock coords or generate consistent ones based on ID hash
-  const mapPlaces = useMemo(() => {
-    const places: SmartPlace[] = [];
-    
-    // Helper for pseudo-random coords
-    const getCoords = (id: string, baseLat: number, baseLng: number) => {
-        const hash = id.split('').reduce((a,b)=>a+b.charCodeAt(0),0);
-        return {
-            lat: baseLat + (hash % 20) - 10,
-            lng: baseLng + (hash % 20) - 10
-        };
+export function TripProvider({ children }: { children: React.ReactNode }) {
+  const [state, setState] = useState<TripState>(initialState);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('tripState');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Restore dates
+        if (parsed.currentTrip) {
+          parsed.currentTrip = deserializeTrip(parsed.currentTrip);
+        }
+        parsed.trips = parsed.trips.map(deserializeTrip);
+        setState({ ...initialState, ...parsed });
+      } catch (error) {
+        console.error('Failed to load trip state:', error);
+      }
+    }
+  }, []);
+
+  // Save to localStorage on state change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      localStorage.setItem('tripState', JSON.stringify(state));
+    }, 500); // Debounce saves
+
+    return () => clearTimeout(timer);
+  }, [state]);
+
+  // ============================================================================
+  // TRIP MANAGEMENT
+  // ============================================================================
+
+  const createTrip = useCallback((tripData: Partial<Trip>): Trip => {
+    const trip: Trip = {
+      id: `trip-${Date.now()}`,
+      name: tripData.name || 'New Trip',
+      destination: tripData.destination || 'Unknown',
+      startDate: tripData.startDate || new Date().toISOString().split('T')[0],
+      endDate: tripData.endDate || new Date().toISOString().split('T')[0],
+      duration: tripData.duration || 1,
+      days: tripData.days || [],
+      budget: tripData.budget || {
+        total: 1000,
+        currency: 'USD',
+        breakdown: {
+          restaurants: 0,
+          events: 0,
+          rentals: 0,
+          activities: 0,
+          travel: 0,
+          other: 0
+        },
+        spent: 0,
+        remaining: 1000,
+        alerts: []
+      },
+      preferences: tripData.preferences || state.userPreferences,
+      status: 'planning',
+      lastModified: new Date(),
+      createdAt: new Date()
     };
 
-    events.forEach(e => {
-        const { lat, lng } = getCoords(e.id, 50, 50);
-        places.push({ 
-            id: e.id, lat, lng, 
-            title: e.title, 
-            category: 'Events',
-            price: e.price
-        });
+    setState(prev => ({
+      ...prev,
+      trips: [...prev.trips, trip],
+      currentTrip: trip
+    }));
+
+    eventBus.publish('trip.created', {
+      timestamp: new Date(),
+      source: 'TripContext',
+      tripId: trip.id,
+      trip
+    } as any);
+
+    return trip;
+  }, [state.userPreferences]);
+
+  const updateTrip = useCallback((tripId: string, updates: Partial<Trip>) => {
+    setState(prev => {
+      const trips = prev.trips.map(trip =>
+        trip.id === tripId
+          ? { ...trip, ...updates, lastModified: new Date() }
+          : trip
+      );
+
+      const currentTrip = prev.currentTrip?.id === tripId
+        ? { ...prev.currentTrip, ...updates, lastModified: new Date() }
+        : prev.currentTrip;
+
+      return { ...prev, trips, currentTrip };
     });
 
-    stays.forEach(s => {
-        const { lat, lng } = getCoords(s.id, 45, 60);
-        places.push({ 
-            id: s.id, lat, lng, 
-            title: s.title, 
-            category: 'Stays',
-            price: s.priceTier,
-            isLuxury: s.priceTier === '$$$$' || s.priceTier === '$$$'
-        });
-    });
+    eventBus.publish('trip.updated', {
+      timestamp: new Date(),
+      source: 'TripContext',
+      tripId,
+      updates
+    } as any);
+  }, []);
 
-    experiences.forEach(x => {
-        const { lat, lng } = getCoords(x.id, 60, 30);
-        places.push({ 
-            id: x.id, lat, lng, 
-            title: x.title, 
-            category: 'Attractions'
-        });
-    });
+  const deleteTrip = useCallback((tripId: string) => {
+    setState(prev => ({
+      ...prev,
+      trips: prev.trips.filter(t => t.id !== tripId),
+      currentTrip: prev.currentTrip?.id === tripId ? null : prev.currentTrip
+    }));
 
-    return places;
-  }, [events, stays, experiences]);
+    eventBus.publish('trip.deleted', {
+      timestamp: new Date(),
+      source: 'TripContext',
+      tripId
+    } as any);
+  }, []);
 
-  const addToTrip = (item: any, type: string) => {
-    if (savedIds.includes(item.id)) {
-        toast.info("Already in your trip");
-        return;
+  const setCurrentTrip = useCallback((tripId: string | null) => {
+    setState(prev => ({
+      ...prev,
+      currentTrip: tripId ? prev.trips.find(t => t.id === tripId) || null : null
+    }));
+  }, []);
+
+  // ============================================================================
+  // ENTITY MANAGEMENT
+  // ============================================================================
+
+  const addEntity = useCallback((
+    entity: TripEntity,
+    date: string,
+    options: AddEntityOptions = {}
+  ): AddEntityResult => {
+    if (!state.currentTrip) {
+      return { success: false, message: 'No active trip' };
     }
-    setSavedIds(prev => [...prev, item.id]);
-    toast.success(`Added ${item.title} to trip`);
-    
-    // Here we could also sync with the global AIContext.savedItems if we wanted persistence across pages
-  };
 
-  const removeFromTrip = (id: string) => {
-    setSavedIds(prev => prev.filter(mid => mid !== id));
-    toast.success("Removed from trip");
-  };
+    // Find or create day
+    let day = state.currentTrip.days.find(d => d.date === date);
+    if (!day) {
+      day = createDay(date, state.currentTrip);
+      state.currentTrip.days.push(day);
+    }
 
-  const filterByAI = (query: string) => {
-    const lowerQ = query.toLowerCase();
-    
-    // Mock Filtering Logic
-    if (lowerQ.includes('luxury') || lowerQ.includes('expensive')) {
-        setStays(INITIAL_STAYS.filter(s => s.priceTier === '$$$$' || s.priceTier === '$$$'));
-        setEvents(INITIAL_EVENTS.filter(e => e.price !== 'Free' && parseInt(e.price?.replace('$','')||'0') > 20));
-        toast.success("Filtered for Luxury");
-    } else if (lowerQ.includes('budget') || lowerQ.includes('cheap')) {
-        setStays(INITIAL_STAYS.filter(s => s.priceTier === '$' || s.priceTier === '$$'));
-        setEvents(INITIAL_EVENTS.filter(e => e.price === '$10' || e.price === 'Free'));
-        toast.success("Filtered for Budget");
-    } else if (lowerQ.includes('reset') || lowerQ.includes('all')) {
-        setEvents(INITIAL_EVENTS);
-        setStays(INITIAL_STAYS);
-        setExperiences(INITIAL_EXPERIENCES);
-        toast.success("Reset recommendations");
-    } else {
-        // Generic search
-        toast.info(`Refining results for "${query}"...`);
-        // We could just filter by title match for a "real" feel
-        const matchTitle = (i: any) => i.title.toLowerCase().includes(lowerQ);
+    // Check conflicts
+    if (!options.skipConflictCheck) {
+      const conflicts = conflictDetector.detectConflicts(entity, day);
+      
+      if (conflicts.length > 0) {
+        // Check if blocking
+        const hasBlocking = conflicts.some(c => c.severity === 'blocking');
         
-        // If we find matches, filter. If not, don't empty everything.
-        const eMatch = INITIAL_EVENTS.filter(matchTitle);
-        const sMatch = INITIAL_STAYS.filter(matchTitle);
-        const xMatch = INITIAL_EXPERIENCES.filter(matchTitle);
-
-        if (eMatch.length || sMatch.length || xMatch.length) {
-            setEvents(eMatch.length ? eMatch : events);
-            setStays(sMatch.length ? sMatch : stays);
-            setExperiences(xMatch.length ? xMatch : experiences);
-        } else {
-            // No matches, maybe just shuffle or pretend to update
-            toast.info("No exact matches, but here are some suggestions.");
+        if (hasBlocking) {
+          return {
+            success: false,
+            conflicts,
+            message: 'Blocking conflicts detected. Please resolve before adding.'
+          };
         }
+
+        // Auto-resolve if requested
+        if (options.autoResolveConflicts) {
+          const result = conflictDetector.autoResolveConflicts(conflicts, entity, day);
+          if (result.resolved && result.updatedEntity) {
+            entity = result.updatedEntity;
+          } else {
+            return {
+              success: false,
+              conflicts,
+              message: 'Cannot auto-resolve conflicts.'
+            };
+          }
+        } else {
+          // Return conflicts for user to resolve
+          return {
+            success: false,
+            conflicts,
+            message: 'Conflicts detected. Review before adding.'
+          };
+        }
+      }
     }
+
+    // Add entity to day
+    day.items.push(entity);
+
+    // Update trip state
+    setState(prev => {
+      const updatedTrip = { ...prev.currentTrip! };
+      const dayIndex = updatedTrip.days.findIndex(d => d.date === date);
+      if (dayIndex >= 0) {
+        updatedTrip.days[dayIndex] = recalculateDayStats(day!);
+      }
+
+      // Recalculate budget
+      updatedTrip.budget = budgetTracker.calculateBudget(updatedTrip);
+
+      return {
+        ...prev,
+        currentTrip: updatedTrip,
+        trips: prev.trips.map(t => t.id === updatedTrip.id ? updatedTrip : t)
+      };
+    });
+
+    // Publish event
+    eventBus.publish('entity.added', {
+      timestamp: new Date(),
+      source: 'TripContext',
+      tripId: state.currentTrip.id,
+      entityType: entity.type,
+      entityId: entity.id,
+      entity
+    } as EntityEventPayload);
+
+    return { success: true, message: 'Entity added successfully' };
+  }, [state.currentTrip]);
+
+  const removeEntity = useCallback((entityId: string, date: string) => {
+    if (!state.currentTrip) return;
+
+    setState(prev => {
+      const updatedTrip = { ...prev.currentTrip! };
+      const day = updatedTrip.days.find(d => d.date === date);
+      
+      if (day) {
+        const entity = day.items.find(i => i.id === entityId);
+        day.items = day.items.filter(i => i.id !== entityId);
+        recalculateDayStats(day);
+
+        // Recalculate budget
+        updatedTrip.budget = budgetTracker.calculateBudget(updatedTrip);
+
+        // Publish event
+        if (entity) {
+          eventBus.publish('entity.removed', {
+            timestamp: new Date(),
+            source: 'TripContext',
+            tripId: updatedTrip.id,
+            entityType: entity.type,
+            entityId: entity.id,
+            entity
+          } as EntityEventPayload);
+        }
+      }
+
+      return {
+        ...prev,
+        currentTrip: updatedTrip,
+        trips: prev.trips.map(t => t.id === updatedTrip.id ? updatedTrip : t)
+      };
+    });
+  }, [state.currentTrip]);
+
+  const updateEntity = useCallback((entityId: string, updates: Partial<TripEntity>) => {
+    if (!state.currentTrip) return;
+
+    setState(prev => {
+      const updatedTrip = { ...prev.currentTrip! };
+      
+      updatedTrip.days.forEach(day => {
+        const index = day.items.findIndex(i => i.id === entityId);
+        if (index >= 0) {
+          const previous = day.items[index];
+          day.items[index] = { ...day.items[index], ...updates };
+          
+          // Publish event
+          eventBus.publish('entity.updated', {
+            timestamp: new Date(),
+            source: 'TripContext',
+            tripId: updatedTrip.id,
+            entityType: day.items[index].type,
+            entityId,
+            entity: day.items[index],
+            previousEntity: previous,
+            changes: updates
+          } as EntityEventPayload);
+        }
+      });
+
+      return {
+        ...prev,
+        currentTrip: updatedTrip,
+        trips: prev.trips.map(t => t.id === updatedTrip.id ? updatedTrip : t)
+      };
+    });
+  }, [state.currentTrip]);
+
+  // ============================================================================
+  // SAVE/BOOKMARK
+  // ============================================================================
+
+  const saveEntity = useCallback((entity: TripEntity) => {
+    setState(prev => {
+      const savedItems = { ...prev.savedItems };
+      
+      switch (entity.type) {
+        case 'restaurant':
+          if (!savedItems.restaurants.find(r => r.id === entity.id)) {
+            savedItems.restaurants.push({ ...entity, saved: true } as Restaurant);
+          }
+          break;
+        case 'event':
+          if (!savedItems.events.find(e => e.id === entity.id)) {
+            savedItems.events.push({ ...entity, saved: true } as Event);
+          }
+          break;
+        case 'rental':
+          if (!savedItems.rentals.find(r => r.id === entity.id)) {
+            savedItems.rentals.push({ ...entity, saved: true } as Rental);
+          }
+          break;
+        case 'destination':
+          if (!savedItems.destinations.find(d => d.id === entity.id)) {
+            savedItems.destinations.push({ ...entity, saved: true } as Destination);
+          }
+          break;
+      }
+
+      return { ...prev, savedItems };
+    });
+
+    eventBus.publish('entity.saved', {
+      timestamp: new Date(),
+      source: 'TripContext',
+      entityType: entity.type,
+      entityId: entity.id,
+      entity
+    } as EntityEventPayload);
+  }, []);
+
+  const unsaveEntity = useCallback((entityId: string, entityType: TripEntity['type']) => {
+    setState(prev => {
+      const savedItems = { ...prev.savedItems };
+      
+      switch (entityType) {
+        case 'restaurant':
+          savedItems.restaurants = savedItems.restaurants.filter(r => r.id !== entityId);
+          break;
+        case 'event':
+          savedItems.events = savedItems.events.filter(e => e.id !== entityId);
+          break;
+        case 'rental':
+          savedItems.rentals = savedItems.rentals.filter(r => r.id !== entityId);
+          break;
+        case 'destination':
+          savedItems.destinations = savedItems.destinations.filter(d => d.id !== entityId);
+          break;
+      }
+
+      return { ...prev, savedItems };
+    });
+
+    eventBus.publish('entity.unsaved', {
+      timestamp: new Date(),
+      source: 'TripContext',
+      entityType,
+      entityId,
+      entity: {} as any
+    } as EntityEventPayload);
+  }, []);
+
+  // ============================================================================
+  // AVAILABLE ITEMS
+  // ============================================================================
+
+  const setAvailableRestaurants = useCallback((restaurants: Restaurant[]) => {
+    setState(prev => ({ ...prev, availableRestaurants: restaurants }));
+  }, []);
+
+  const setAvailableEvents = useCallback((events: Event[]) => {
+    setState(prev => ({ ...prev, availableEvents: events }));
+  }, []);
+
+  const setAvailableRentals = useCallback((rentals: Rental[]) => {
+    setState(prev => ({ ...prev, availableRentals: rentals }));
+  }, []);
+
+  const setAvailableDestinations = useCallback((destinations: Destination[]) => {
+    setState(prev => ({ ...prev, availableDestinations: destinations }));
+  }, []);
+
+  // ============================================================================
+  // CONFLICT MANAGEMENT
+  // ============================================================================
+
+  const checkConflicts = useCallback((entity: TripEntity, date: string): ScheduleConflict[] => {
+    if (!state.currentTrip) return [];
+
+    const day = state.currentTrip.days.find(d => d.date === date);
+    if (!day) return [];
+
+    return conflictDetector.detectConflicts(entity, day);
+  }, [state.currentTrip]);
+
+  const resolveConflict = useCallback((conflictId: string) => {
+    // Implementation depends on conflict resolution UI
+    console.log('Resolving conflict:', conflictId);
+  }, []);
+
+  // ============================================================================
+  // BUDGET
+  // ============================================================================
+
+  const getBudget = useCallback((): Budget | null => {
+    return state.currentTrip?.budget || null;
+  }, [state.currentTrip]);
+
+  const checkBudgetImpact = useCallback((entity: TripEntity) => {
+    if (!state.currentTrip) {
+      return { canAfford: true, newTotal: 0, remaining: 0, alerts: [] };
+    }
+
+    return budgetTracker.checkBudgetImpact(entity, state.currentTrip.budget);
+  }, [state.currentTrip]);
+
+  // ============================================================================
+  // PREFERENCES
+  // ============================================================================
+
+  const updatePreferences = useCallback((preferences: Partial<UserPreferences>) => {
+    setState(prev => ({
+      ...prev,
+      userPreferences: { ...prev.userPreferences, ...preferences }
+    }));
+
+    eventBus.publish('user.preferences.updated', {
+      timestamp: new Date(),
+      source: 'TripContext',
+      preferences
+    } as any);
+  }, []);
+
+  // ============================================================================
+  // UTILITY
+  // ============================================================================
+
+  const getDay = useCallback((date: string): TripDay | null => {
+    return state.currentTrip?.days.find(d => d.date === date) || null;
+  }, [state.currentTrip]);
+
+  const refreshTrip = useCallback(() => {
+    if (!state.currentTrip) return;
+
+    setState(prev => {
+      const updatedTrip = { ...prev.currentTrip! };
+      updatedTrip.budget = budgetTracker.calculateBudget(updatedTrip);
+      
+      return {
+        ...prev,
+        currentTrip: updatedTrip,
+        trips: prev.trips.map(t => t.id === updatedTrip.id ? updatedTrip : t)
+      };
+    });
+  }, [state.currentTrip]);
+
+  // ============================================================================
+  // CONTEXT VALUE
+  // ============================================================================
+
+  const value: TripContextValue = {
+    ...state,
+    createTrip,
+    updateTrip,
+    deleteTrip,
+    setCurrentTrip,
+    addEntity,
+    removeEntity,
+    updateEntity,
+    saveEntity,
+    unsaveEntity,
+    setAvailableRestaurants,
+    setAvailableEvents,
+    setAvailableRentals,
+    setAvailableDestinations,
+    checkConflicts,
+    resolveConflict,
+    getBudget,
+    checkBudgetImpact,
+    updatePreferences,
+    getDay,
+    refreshTrip
   };
 
-  return (
-    <TripContext.Provider value={{
-      events, stays, experiences, mapPlaces,
-      savedIds, activePlaceId,
-      addToTrip, removeFromTrip, setActivePlaceId, filterByAI
-    }}>
-      {children}
-    </TripContext.Provider>
-  );
+  return <TripContext.Provider value={value}>{children}</TripContext.Provider>;
 }
 
-export const useTrip = () => {
+// ============================================================================
+// HOOK
+// ============================================================================
+
+export function useTripContext() {
   const context = useContext(TripContext);
-  if (context === undefined) {
-    throw new Error('useTrip must be used within a TripProvider');
+  if (!context) {
+    throw new Error('useTripContext must be used within TripProvider');
   }
   return context;
-};
+}
+
+// Alias for backwards compatibility
+export const useTrip = useTripContext;
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+function createDay(date: string, trip: Trip): TripDay {
+  const dayNumber = calculateDayNumber(date, trip.startDate);
+  const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' });
+
+  return {
+    date,
+    dayOfWeek,
+    dayNumber,
+    items: [],
+    schedule: {
+      date,
+      slots: [],
+      conflicts: []
+    },
+    stats: {
+      totalCost: 0,
+      totalDuration: 0,
+      activitiesCount: 0,
+      travelTime: 0,
+      freeTime: 0
+    }
+  };
+}
+
+function calculateDayNumber(date: string, startDate: string): number {
+  const start = new Date(startDate);
+  const current = new Date(date);
+  const diff = current.getTime() - start.getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
+}
+
+function recalculateDayStats(day: TripDay): TripDay {
+  const stats = {
+    totalCost: 0,
+    totalDuration: 0,
+    activitiesCount: day.items.length,
+    travelTime: 0,
+    freeTime: 0
+  };
+
+  day.items.forEach(item => {
+    // Cost
+    if ('estimatedCost' in item) stats.totalCost += item.estimatedCost || 0;
+    if ('price' in item && typeof item.price === 'number') stats.totalCost += item.price;
+    
+    // Duration
+    if ('duration' in item) stats.totalDuration += item.duration || 0;
+    if ('estimatedDuration' in item) stats.totalDuration += item.estimatedDuration || 0;
+    
+    // Travel time
+    if (item.type === 'travel' && 'duration' in item) {
+      stats.travelTime += item.duration || 0;
+    }
+  });
+
+  day.stats = stats;
+  return day;
+}
+
+function deserializeTrip(trip: any): Trip {
+  return {
+    ...trip,
+    createdAt: new Date(trip.createdAt),
+    lastModified: new Date(trip.lastModified),
+    days: trip.days.map((day: any) => ({
+      ...day,
+      items: day.items.map((item: any) => deserializeEntity(item))
+    }))
+  };
+}
+
+function deserializeEntity(entity: any): TripEntity {
+  const deserialized = { ...entity };
+  
+  // Restore dates
+  if (entity.startTime) deserialized.startTime = new Date(entity.startTime);
+  if (entity.endTime) deserialized.endTime = new Date(entity.endTime);
+  if (entity.reservationTime) deserialized.reservationTime = new Date(entity.reservationTime);
+  if (entity.visitTime) deserialized.visitTime = new Date(entity.visitTime);
+  if (entity.departureTime) deserialized.departureTime = new Date(entity.departureTime);
+  if (entity.arrivalTime) deserialized.arrivalTime = new Date(entity.arrivalTime);
+  
+  return deserialized;
+}
