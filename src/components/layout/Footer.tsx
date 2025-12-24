@@ -68,6 +68,25 @@ export function Footer() {
                 </Link>
               </li>
               <li><Link to="/slider-demo" className="hover:text-white transition-colors">Slider Component</Link></li>
+              <li>
+                <Link 
+                  to="/tab-nav-demo" 
+                  className="flex items-center gap-2 hover:text-white transition-colors font-semibold text-emerald-400"
+                >
+                  <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                  Tab Navigation ✨
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/chatbot-v2" 
+                  className="flex items-center gap-2 hover:text-white transition-colors font-semibold text-purple-400"
+                >
+                  <span className="inline-block w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
+                  AI Chatbot V2 ✨
+                </Link>
+              </li>
+              <li><Link to="/chatbot" className="hover:text-white transition-colors">AI Chatbot (Old)</Link></li>
               <li><Link to="/how-it-works" className="hover:text-white transition-colors">How it Works (Quick)</Link></li>
               <li><Link to="/how-it-works-v2" className="hover:text-white transition-colors">How it Works (Detailed)</Link></li>
               <li><Link to="/use-cases" className="hover:text-white transition-colors">Use Cases</Link></li>

@@ -42,6 +42,9 @@ import ExplorePage from './pages/ExplorePage';
 import SavedPlacesPage from './pages/saved/SavedPlacesPage';
 import TripDetailsPage from './pages/trip/TripDetailsPage';
 import ChatsPage from './pages/ChatsPage';
+import ChatbotPage from './pages/ChatbotPage';
+import ChatbotV2 from './pages/ChatbotV2';
+import TabNavigationDemo from './pages/TabNavigationDemo';
 import ProductionStatus from './pages/ProductionStatus';
 import { InstallPrompt } from './components/pwa/InstallPrompt';
 import { registerServiceWorker } from './lib/services/pwa';
@@ -169,6 +172,7 @@ function App() {
                         <Route path="/features" element={<FeatureGallery />} />
                         <Route path="/ai-demo" element={<AdvancedAIDemo />} />
                         <Route path="/slider-demo" element={<SliderDemo />} />
+                        <Route path="/tab-nav-demo" element={<TabNavigationDemo />} />
                         
                         {/* Events Routes - /create BEFORE /:eventId to avoid shadowing */}
                         <Route path="/events" element={<EventsPage />} />
@@ -188,6 +192,8 @@ function App() {
                         {/* New Routes Alias */}
                         <Route path="/explore" element={<ExplorePage />} />
                         <Route path="/chats" element={<ChatsPage />} />
+                        <Route path="/chatbot" element={<ChatbotPage />} />
+                        <Route path="/chatbot-v2" element={<ChatbotV2 />} />
                         <Route path="/itineraries" element={<Dashboard />} />
                         <Route path="/saved" element={<SavedPlacesPage />} />
                         <Route path="/collections" element={<SavedPlacesPage />} />
