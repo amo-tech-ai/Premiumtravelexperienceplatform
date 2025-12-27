@@ -1,5 +1,14 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import './styles/globals.css';
+import './App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Toaster } from 'sonner@2.0.3';
+import { TripProvider } from './context/TripContext';
+import { WizardProvider } from './context/WizardContext';
+import { registerServiceWorker } from './utils/serviceWorker';
+import { getAnalyticsService } from './lib/services/analytics';
+import config from './config/runtime';
+import { useEffect } from 'react';
+
 import Home from './pages/Home';
 import HomeV2 from './pages/HomeV2';
 import SliderDemo from './pages/SliderDemo';
@@ -22,11 +31,8 @@ import DigitalNomadPage from './pages/use-cases/DigitalNomadPage';
 import LuxuryTravelerPage from './pages/use-cases/LuxuryTravelerPage';
 import GroupTripPage from './pages/use-cases/GroupTripPage';
 import { AIProvider } from './context/AIContext';
-import { WizardProvider } from './context/WizardContext';
-import { TripProvider } from './context/TripContext';
 import { AIWizardBridge } from './components/ai/AIWizardBridge';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
-import { Toaster } from './components/ui/sonner';
 
 import { AppShell } from './components/layout/AppShell';
 
@@ -39,6 +45,7 @@ import HowItWorksV2 from './pages/HowItWorksV2'; // Detailed Walkthrough
 import Dashboard from './pages/Dashboard';
 import TripDiscoveryDashboard from './pages/TripDiscoveryDashboard';
 import ExplorePage from './pages/ExplorePage';
+import ExplorePageV2 from './pages/ExplorePageV2';
 import SavedPlacesPage from './pages/saved/SavedPlacesPage';
 import TripDetailsPage from './pages/trip/TripDetailsPage';
 import ChatsPage from './pages/ChatsPage';
@@ -47,8 +54,6 @@ import ChatbotV2 from './pages/ChatbotV2';
 import TabNavigationDemo from './pages/TabNavigationDemo';
 import ProductionStatus from './pages/ProductionStatus';
 import { InstallPrompt } from './components/pwa/InstallPrompt';
-import { registerServiceWorker } from './lib/services/pwa';
-import { getAnalyticsService } from './lib/services/analytics';
 import FeatureGallery from './pages/FeatureGallery';
 import AdvancedAIDemo from './components/ai/AdvancedAIDemo';
 
@@ -89,13 +94,13 @@ const ServiceInitializer = () => {
     // Register service worker for PWA support (gracefully fails in unsupported environments)
     registerServiceWorker()
       .then((registration) => {
-        if (registration && import.meta.env.DEV) {
+        if (registration && config.isDev) {
           console.log('✓ Service worker registered successfully');
         }
       })
       .catch((error) => {
         // Silent fail - service worker is optional
-        if (import.meta.env.DEV) {
+        if (config.isDev) {
           console.log('Service worker not available:', error?.message || 'Unknown error');
         }
       });
@@ -191,6 +196,7 @@ function App() {
                         
                         {/* New Routes Alias */}
                         <Route path="/explore" element={<ExplorePage />} />
+                        <Route path="/explore-v2" element={<ExplorePageV2 />} />
                         <Route path="/chats" element={<ChatsPage />} />
                         <Route path="/chatbot" element={<ChatbotPage />} />
                         <Route path="/chatbot-v2" element={<ChatbotV2 />} />

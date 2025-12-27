@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import config from '../config/runtime';
 import { getSavedPlaces, savePlace, unsavePlace } from '../lib/api';
 import type { SavedPlace, SavePlaceRequest } from '../lib/api';
 
@@ -44,7 +45,7 @@ export function useSavedPlaces(options: UseSavedPlacesOptions = {}): UseSavedPla
       setPlaces([]); // Use empty array as fallback
       
       // Only log in development
-      if (import.meta.env.DEV) {
+      if (config.isDev) {
         console.warn('Saved places API not available (backend not deployed)');
       }
     } finally {

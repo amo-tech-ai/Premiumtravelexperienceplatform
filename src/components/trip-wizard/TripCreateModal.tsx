@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, MapPin, Calendar, User, DollarSign, Plus, ChevronDown, Check, Info } from 'lucide-react';
+import { useState } from 'react';
+import { X, Loader2, Plus, MapPin, Calendar, Users, DollarSign, Info, ChevronDown } from 'lucide-react';
+import { toast } from 'sonner@2.0.3';
+import { useNavigate } from 'react-router-dom';
+import config from '../../config/runtime';
+import { motion } from 'motion/react';
+
 import { useWizard } from '../../context/WizardContext';
 import { useTrips } from '../../hooks/useTrips';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
-import { toast } from 'sonner@2.0.3';
 
-import { useNavigate } from 'react-router-dom';
 import { addDays, format } from 'date-fns@3.6.0';
 import type { 
   LocationSelectProps, 
@@ -223,7 +225,7 @@ export function TripCreateModal() {
       }
     } catch (error) {
       toast.error('Failed to create trip');
-      if (import.meta.env.DEV) {
+      if (config.isDev) {
         console.error('Error creating trip:', error);
       }
     } finally {

@@ -1,12 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import config from '../../config/runtime';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = config.supabase.url;
+const supabaseAnonKey = config.supabase.anonKey;
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'https://your-project-id.supabase.co') {
   console.warn('⚠️ Supabase environment variables not configured. Running in mock mode.');
-  console.warn('Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env file');
 }
 
 // Create Supabase client with type safety

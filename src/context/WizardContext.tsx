@@ -1,13 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import { 
-  WizardContextType, 
-  FilterState, 
-  Venue, 
-  UIState, 
-  UserIntent, 
-  AIEvent, 
-  AIActionType 
-} from '../types/wizard';
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import config from '../config/runtime';
 
 // Default Initial States
 const INITIAL_FILTERS: FilterState = {
@@ -65,7 +57,7 @@ export const WizardProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const handleAIEvent = useCallback((event: AIEvent) => {
-    if (import.meta.env.DEV) {
+    if (config.isDev) {
       console.log('[WizardContext] AI Event:', event);
     }
     switch (event.type) {

@@ -24,6 +24,8 @@ import { Textarea } from '../ui/textarea';
 import { Alert, AlertDescription } from '../ui/alert';
 import { streamGeminiResponse, GeminiMessage, GeminiError } from '../../lib/ai/gemini';
 import { sanitizeInput } from '../../lib/utils/validation';
+import { parseRecommendationResponse, generateViewAllText } from '../../lib/ai/chatResponseParser';
+import { ChatRecommendationCard } from './ChatRecommendationCard';
 
 // ============================================================================
 // TYPES
@@ -36,6 +38,8 @@ interface Message {
   timestamp: Date;
   reasoning?: string;
   suggestions?: any[];
+  component?: React.ReactNode; // NEW: For recommendation cards
+  contextId?: string; // NEW: For navigation
 }
 
 interface AIChatInterfaceProps {
@@ -182,6 +186,49 @@ export function AIChatInterface({
       if (onResponse) {
         onResponse(fullResponse);
       }
+
+      // Parse AI response for recommendations
+      const { success, context, contextId, topResults } = parseRecommendationResponse(fullResponse, sanitized);
+      
+      if (success && context && topResults) {
+        const intentLabel = {
+          restaurants: 'restaurants',
+          events: 'events',
+          rentals: 'places',
+          activities: 'activities',
+          destinations: 'destinations',
+          mixed: 'recommendations',
+        }[context.intent] || 'places';
+
+        const viewAllText = generateViewAllText(context);
+
+        // Add recommendation cards to the last message
+        setMessages((prev) => {
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage && lastMessage.role === 'assistant') {
+            return [
+              ...prev.slice(0, -1),
+              {
+                ...lastMessage,
+                component: (
+                  <ChatRecommendationCard
+                    results={topResults}
+                    reasoning={context.ranking?.reasoning}
+                    totalCount={context.primaryResults.length}
+                    intentLabel={intentLabel}
+                    areaName={context.area.name}
+                    onViewAll={() => {
+                      window.location.href = `/explore-v2?contextId=${contextId}`;
+                    }}
+                  />
+                ),
+                contextId,
+              },
+            ];
+          }
+          return prev;
+        });
+      }
     } catch (err: any) {
       console.error('Chat error:', err);
       
@@ -273,6 +320,11 @@ export function AIChatInterface({
                 {message.reasoning && (
                   <div className="mt-2 border-t border-stone-200 pt-2 text-sm text-stone-600">
                     <strong>Reasoning:</strong> {message.reasoning}
+                  </div>
+                )}
+                {message.component && (
+                  <div className="mt-4">
+                    {message.component}
                   </div>
                 )}
               </div>

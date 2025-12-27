@@ -3,15 +3,10 @@
  * Pre-populates form with existing data, handles updates
  */
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
-import { MapPin, DollarSign, Clock, Calendar, Tag } from 'lucide-react';
+import config from '../../config/runtime';
 
 interface EditActivityModalProps {
   open: boolean;
@@ -107,12 +102,12 @@ export function EditActivityModal({ open, onClose, tripId, tripDays, activity, o
 
     try {
       const response = await fetch(
-        `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/make-server-fd8c4bf7/trips/${tripId}/items/${activity.id}`,
+        `https://${config.supabase.projectId}.supabase.co/functions/v1/make-server-fd8c4bf7/trips/${tripId}/items/${activity.id}`,
         {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Authorization': `Bearer ${config.supabase.anonKey}`,
           },
           body: JSON.stringify({
             ...formData,

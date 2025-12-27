@@ -3,10 +3,9 @@
  * Catches and handles React errors gracefully
  */
 
-import React, { Component, ReactNode, ErrorInfo } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import config from '../../config/runtime';
 
 interface Props {
   children: ReactNode;
@@ -87,16 +86,20 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
           <div className="max-w-md w-full space-y-4">
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Something went wrong</AlertTitle>
-              <AlertDescription>
-                An error occurred while rendering this component. Please try refreshing the page.
-              </AlertDescription>
-            </Alert>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-red-900 font-semibold mb-1">Something went wrong</h3>
+                  <p className="text-red-700 text-sm">
+                    An error occurred while rendering this component. Please try refreshing the page.
+                  </p>
+                </div>
+              </div>
+            </div>
 
             {/* Error Details (Development Only) */}
-            {import.meta.env.MODE === 'development' && this.state.error && (
+            {config.features.showErrorDetails && this.state.error && (
               <div className="bg-white border border-red-200 rounded-lg p-4 text-sm">
                 <div className="font-medium text-red-900 mb-2">Error Details:</div>
                 <div className="text-red-700 font-mono text-xs whitespace-pre-wrap break-words">
@@ -117,21 +120,20 @@ export class ErrorBoundary extends Component<Props, State> {
 
             {/* Action Buttons */}
             <div className="flex gap-2">
-              <Button
+              <button
                 onClick={this.resetErrorBoundary}
-                className="flex-1"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
               >
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <RefreshCw className="w-4 h-4" />
                 Try Again
-              </Button>
-              <Button
-                variant="outline"
+              </button>
+              <button
                 onClick={() => window.location.href = '/'}
-                className="flex-1"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
               >
-                <Home className="w-4 h-4 mr-2" />
+                <Home className="w-4 h-4" />
                 Go Home
-              </Button>
+              </button>
             </div>
           </div>
         </div>

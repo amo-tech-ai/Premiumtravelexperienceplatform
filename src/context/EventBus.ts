@@ -1,3 +1,5 @@
+import config from '../config/runtime';
+
 /**
  * EVENT BUS - Agent Communication System
  * 
@@ -343,7 +345,7 @@ export const eventBus = new EventBus();
 if (typeof window !== 'undefined') {
   (window as any).__eventBus = eventBus;
   
-  if (process.env.NODE_ENV === 'development') {
+  if (config.isDev) {
     eventBus.setDebugMode(true);
   }
 }

@@ -3,19 +3,10 @@
  * Simple, safe confirmation dialog with error handling
  */
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
-import { Trash2 } from 'lucide-react';
+import config from '../../config/runtime';
 
 interface DeleteActivityDialogProps {
   open: boolean;
@@ -35,11 +26,11 @@ export function DeleteActivityDialog({ open, onClose, tripId, activity, onSucces
 
     try {
       const response = await fetch(
-        `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/make-server-fd8c4bf7/trips/${tripId}/items/${activity.id}`,
+        `https://${config.supabase.projectId}.supabase.co/functions/v1/make-server-fd8c4bf7/trips/${tripId}/items/${activity.id}`,
         {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Authorization': `Bearer ${config.supabase.anonKey}`,
           },
         }
       );
@@ -66,7 +57,7 @@ export function DeleteActivityDialog({ open, onClose, tripId, activity, onSucces
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
-            <Trash2 className="size-5 text-destructive" />
+            <AlertTriangle className="size-5 text-destructive" />
             Delete Activity
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-2">
@@ -94,7 +85,7 @@ export function DeleteActivityDialog({ open, onClose, tripId, activity, onSucces
               </span>
             ) : (
               <span className="flex items-center gap-2">
-                <Trash2 className="size-4" />
+                <AlertTriangle className="size-4" />
                 Delete Activity
               </span>
             )}

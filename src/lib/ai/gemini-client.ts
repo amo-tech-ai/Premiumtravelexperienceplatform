@@ -3,7 +3,8 @@
  * Production-ready wrapper for Google's Gemini API
  */
 
-import { GoogleGenerativeAI, GenerativeModel, GenerationConfig } from '@google/generative-ai';
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
+import config from '../../config/runtime';
 
 // --- TYPES ---
 
@@ -62,9 +63,9 @@ export class GeminiClient {
    * Get API key from environment or localStorage
    */
   private getApiKey(): string | null {
-    // Check environment variable
-    if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) {
-      return import.meta.env.VITE_GEMINI_API_KEY;
+    // Use config instead of import.meta.env
+    if (config.gemini.apiKey && config.gemini.apiKey !== 'YOUR_GEMINI_API_KEY') {
+      return config.gemini.apiKey;
     }
 
     // Fallback to localStorage (for demo purposes)

@@ -29,6 +29,10 @@ export {
   useEventHistory
 } from './hooks/useEventBus';
 
+// Exploration Context Hook (NEW)
+export { useExplorationContext } from './hooks/useExplorationContext';
+export type { UseExplorationContextReturn } from './hooks/useExplorationContext';
+
 // Event Bus
 export { eventBus, EventBus, createPublisher, createSubscriber, waitForEvent } from './EventBus';
 export type { EventType, EventPayload, EntityEventPayload } from './EventBus';
@@ -39,6 +43,22 @@ export type { ConflictDetectionOptions } from './ConflictDetector';
 
 // Budget Tracker
 export { budgetTracker, BudgetTracker } from './BudgetTracker';
+
+// Exploration Storage (NEW)
+export { explorationStorage, ExplorationStorageUtils } from './storage/ExplorationStorage';
+
+// Exploration Route Utilities (NEW)
+export {
+  parseExploreParams,
+  buildExploreParams,
+  buildExploreUrl,
+  navigateToExplore,
+  getCurrentExploreParams,
+  isExplorePage,
+  validateExploreParams,
+  applyDefaultParams,
+  DEFAULT_EXPLORE_PARAMS,
+} from './utils/explorationRouteUtils';
 
 // Types
 export type {
@@ -81,3 +101,11 @@ export type {
   SearchFilters,
   AnalyticsData
 } from './types/TripTypes';
+
+// Exploration Types (NEW)
+export * from './types/ExplorationTypes';
+export * from './types/SelectionTypes';
+export * from './storage/ExplorationStorage';
+export * from './hooks/useExplorationContext';
+export * from './hooks/useMapListSync';
+export * from './utils/explorationRouteUtils';

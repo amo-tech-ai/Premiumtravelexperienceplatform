@@ -15,7 +15,8 @@
  * - Failures are graceful and recoverable
  */
 
-import { GoogleGenerativeAI, GenerateContentStreamResult } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import config from '../../config/runtime';
 
 // ============================================================================
 // TYPES
@@ -57,7 +58,7 @@ export interface GeminiError {
 // CONFIGURATION
 // ============================================================================
 
-const GEMINI_API_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) || '';
+const GEMINI_API_KEY = config.gemini.apiKey !== 'YOUR_GEMINI_API_KEY' ? config.gemini.apiKey : '';
 const MODEL_NAME = 'gemini-1.5-flash'; // Fast, efficient model
 const FALLBACK_MODEL = 'gemini-1.5-pro'; // More capable fallback
 

@@ -3,6 +3,8 @@
  * Production-ready location and address services
  */
 
+import config from '../../config/runtime';
+
 export interface Coordinates {
   lat: number;
   lng: number;
@@ -44,29 +46,17 @@ export class GeocodingService {
   }
 
   /**
-   * Get API key from environment or localStorage
+   * Get API key from config
    */
   private getApiKey(): string | null {
-    // Check environment variables
-    if (typeof import.meta !== 'undefined') {
-      if (this.provider === 'google' && import.meta.env?.VITE_GOOGLE_MAPS_API_KEY) {
-        return import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-      }
-      if (this.provider === 'mapbox' && import.meta.env?.VITE_MAPBOX_API_KEY) {
-        return import.meta.env.VITE_MAPBOX_API_KEY;
-      }
+    // Check config instead of import.meta.env
+    if (this.provider === 'google' && config.googleMaps.apiKey !== 'YOUR_GOOGLE_MAPS_API_KEY') {
+      return config.googleMaps.apiKey;
     }
-
-    // Check localStorage
-    if (typeof window !== 'undefined') {
-      if (this.provider === 'google') {
-        return localStorage.getItem('google_maps_api_key');
-      }
-      if (this.provider === 'mapbox') {
-        return localStorage.getItem('mapbox_api_key');
-      }
-    }
-
+    
+    // Mapbox not configured in runtime.ts, so skip that check
+    
+    // No API key available
     return null;
   }
 
