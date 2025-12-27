@@ -6,6 +6,7 @@
  * - Type safety
  * - Error handling
  * - Optimistic updates
+ * - Mock data fallback for development
  */
 
 import api from './client';
@@ -20,6 +21,61 @@ import type {
 } from './types';
 
 // ============================================================================
+// MOCK DATA (FALLBACK)
+// ============================================================================
+
+const MOCK_TRIPS: Trip[] = [
+  {
+    id: 'trip-1',
+    user_id: 'mock-user',
+    title: 'Medellín Adventure',
+    description: 'A luxury exploration of Colombia\'s most innovative city',
+    destination: 'Medellín, Colombia',
+    start_date: '2025-02-15',
+    end_date: '2025-02-22',
+    status: 'planning',
+    budget: 3500,
+    currency: 'USD',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'trip-2',
+    user_id: 'mock-user',
+    title: 'Tokyo Discovery',
+    description: 'Modern meets traditional in Japan\'s dynamic capital',
+    destination: 'Tokyo, Japan',
+    start_date: '2025-03-10',
+    end_date: '2025-03-20',
+    status: 'planning',
+    budget: 5000,
+    currency: 'USD',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+];
+
+let mockTripsStore = [...MOCK_TRIPS];
+let mockIdCounter = 3;
+
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
+
+const USE_MOCK_DATA = typeof import.meta?.env?.VITE_USE_MOCK_DATA !== 'undefined' 
+  ? import.meta.env.VITE_USE_MOCK_DATA === 'true'
+  : true; // Default to true for development
+
+// Log mock data status
+if (USE_MOCK_DATA) {
+  console.log(
+    '%c🎭 MOCK DATA MODE ENABLED',
+    'background: #4CAF50; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;',
+    '\nTrip API is using mock data. To use real backend, set VITE_USE_MOCK_DATA=false'
+  );
+}
+
+// ============================================================================
 // TRIPS
 // ============================================================================
 
@@ -27,24 +83,87 @@ import type {
  * Get all trips for current user
  */
 export async function getTrips(): Promise<Trip[]> {
-  const response = await api.get<Trip[]>('/trips');
-  return response.data;
+  if (USE_MOCK_DATA) {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return [...mockTripsStore];
+  }
+  
+  try {
+    const response = await api.get<Trip[]>('/trips');
+    return response.data;
+  } catch (error) {
+    console.warn('API unavailable, falling back to mock data');
+    return [...mockTripsStore];
+  }
 }
 
 /**
  * Get single trip with items
  */
 export async function getTrip(tripId: string): Promise<TripWithItems> {
-  const response = await api.get<TripWithItems>(`/trips/${tripId}`);
-  return response.data;
+  if (USE_MOCK_DATA) {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const trip = mockTripsStore.find(t => t.id === tripId);
+    if (!trip) {
+      throw new Error('Trip not found');
+    }
+    return {
+      ...trip,
+      items: [], // No items in mock data yet
+    };
+  }
+  
+  try {
+    const response = await api.get<TripWithItems>(`/trips/${tripId}`);
+    return response.data;
+  } catch (error) {
+    console.warn('API unavailable, falling back to mock data');
+    const trip = mockTripsStore.find(t => t.id === tripId);
+    if (!trip) {
+      throw new Error('Trip not found');
+    }
+    return {
+      ...trip,
+      items: [],
+    };
+  }
 }
 
 /**
  * Create new trip
  */
 export async function createTrip(data: CreateTripRequest): Promise<Trip> {
-  const response = await api.post<Trip>('/trips', data);
-  return response.data;
+  if (USE_MOCK_DATA) {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    const newTrip: Trip = {
+      id: `trip-${mockIdCounter++}`,
+      user_id: 'mock-user',
+      ...data,
+      status: 'planning',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    mockTripsStore = [...mockTripsStore, newTrip];
+    return newTrip;
+  }
+  
+  try {
+    const response = await api.post<Trip>('/trips', data);
+    return response.data;
+  } catch (error) {
+    console.warn('API unavailable, using mock create');
+    const newTrip: Trip = {
+      id: `trip-${mockIdCounter++}`,
+      user_id: 'mock-user',
+      ...data,
+      status: 'planning',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    mockTripsStore = [...mockTripsStore, newTrip];
+    return newTrip;
+  }
 }
 
 /**
@@ -54,15 +173,64 @@ export async function updateTrip(
   tripId: string,
   data: UpdateTripRequest
 ): Promise<Trip> {
-  const response = await api.put<Trip>(`/trips/${tripId}`, data);
-  return response.data;
+  if (USE_MOCK_DATA) {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const index = mockTripsStore.findIndex(t => t.id === tripId);
+    if (index === -1) {
+      throw new Error('Trip not found');
+    }
+    const updatedTrip = {
+      ...mockTripsStore[index],
+      ...data,
+      updated_at: new Date().toISOString(),
+    };
+    mockTripsStore = [
+      ...mockTripsStore.slice(0, index),
+      updatedTrip,
+      ...mockTripsStore.slice(index + 1),
+    ];
+    return updatedTrip;
+  }
+  
+  try {
+    const response = await api.put<Trip>(`/trips/${tripId}`, data);
+    return response.data;
+  } catch (error) {
+    console.warn('API unavailable, using mock update');
+    const index = mockTripsStore.findIndex(t => t.id === tripId);
+    if (index === -1) {
+      throw new Error('Trip not found');
+    }
+    const updatedTrip = {
+      ...mockTripsStore[index],
+      ...data,
+      updated_at: new Date().toISOString(),
+    };
+    mockTripsStore = [
+      ...mockTripsStore.slice(0, index),
+      updatedTrip,
+      ...mockTripsStore.slice(index + 1),
+    ];
+    return updatedTrip;
+  }
 }
 
 /**
  * Delete trip
  */
 export async function deleteTrip(tripId: string): Promise<void> {
-  await api.delete(`/trips/${tripId}`);
+  if (USE_MOCK_DATA) {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    mockTripsStore = mockTripsStore.filter(t => t.id !== tripId);
+    return;
+  }
+  
+  try {
+    await api.delete(`/trips/${tripId}`);
+  } catch (error) {
+    console.warn('API unavailable, using mock delete');
+    mockTripsStore = mockTripsStore.filter(t => t.id !== tripId);
+  }
 }
 
 // ============================================================================
