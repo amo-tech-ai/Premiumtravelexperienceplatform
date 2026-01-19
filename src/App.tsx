@@ -1,5 +1,4 @@
 import './styles/globals.css';
-import './App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router';
 import { Toaster } from 'sonner@2.0.3';
 import { TripProvider } from './context/TripContext';
