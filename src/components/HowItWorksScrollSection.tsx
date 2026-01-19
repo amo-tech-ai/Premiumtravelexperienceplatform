@@ -1,17 +1,27 @@
 /**
  * How It Works - Scroll-Driven Product Demo
  * Features 400vh scroll container with two-column layout
+ * RIGHT COLUMN: Viewport-safe screens (no overflow, perfectly framed)
+ * RESPONSIVE: Desktop (≥1024px), Tablet (768-1023px), Mobile (≤767px)
  */
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Sparkles, Calendar, Home, Shield, CheckCircle2 } from 'lucide-react';
+import { HowItWorksMobile } from './HowItWorksMobile';
+import { HowItWorksTablet } from './HowItWorksTablet';
+import { getPrefersReducedMotion } from '../utils/motionPreferences';
+import { CalendarScreen } from './CalendarScreen';
 
 export function HowItWorksScrollSection() {
   const [activeStep, setActiveStep] = useState(0);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Check for reduced motion preference
+    setPrefersReducedMotion(getPrefersReducedMotion());
+
     const handleScroll = () => {
       if (!scrollContainerRef.current) return;
       
@@ -72,184 +82,196 @@ export function HowItWorksScrollSection() {
         </div>
       </div>
 
-      {/* Scroll-Driven Two-Column Layout */}
-      <div 
-        ref={scrollContainerRef}
-        className="relative bg-slate-50"
-        style={{ height: '400vh' }}
-      >
-        <div className="sticky top-0 h-screen overflow-hidden">
-          <div className="max-w-[1400px] mx-auto px-6 py-16 h-full">
-            <div className="grid lg:grid-cols-12 gap-12 h-full items-center">
-              
-              {/* LEFT COLUMN - Sticky Narrative (40%) */}
-              <div className="lg:col-span-5 space-y-12">
+      {/* Mobile Layout (≤767px) */}
+      <div className="md:hidden">
+        <HowItWorksMobile />
+      </div>
+
+      {/* Tablet Layout (768px - 1023px) */}
+      <div className="hidden md:block lg:hidden">
+        <HowItWorksTablet />
+      </div>
+
+      {/* Desktop Layout (≥1024px) - Scroll-Driven */}
+      <div className="hidden lg:block">
+        {/* Scroll-Driven Two-Column Layout */}
+        <div 
+          ref={scrollContainerRef}
+          className="relative bg-slate-50"
+          style={{ height: '400vh' }}
+        >
+          <div className="sticky top-0 h-screen overflow-hidden">
+            <div className="max-w-[1400px] mx-auto px-6 py-16 h-full">
+              <div className="grid lg:grid-cols-12 gap-12 h-full items-center">
                 
-                {/* Step 01 - Discover */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ 
-                    opacity: activeStep === 0 ? 1 : 0.3,
-                    x: activeStep === 0 ? 0 : -20
-                  }}
-                  transition={{ duration: 0.4 }}
-                  className={`${activeStep === 0 ? 'scale-100' : 'scale-95'} transition-transform duration-400`}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-400 ${
-                      activeStep === 0 
-                        ? 'bg-emerald-600 text-white shadow-lg' 
-                        : 'bg-slate-200 text-slate-500'
-                    }`}>
-                      01
-                    </div>
-                    <div>
-                      <h3 className="text-3xl font-bold text-slate-900 mb-3">Discover</h3>
-                      <p className="text-lg text-slate-600 leading-relaxed">
-                        Tell us your vibe. We surface the best nearby picks.
-                      </p>
-                    </div>
-                  </div>
-                  {activeStep === 0 && (
-                    <div className="ml-16 mt-4">
-                      <div className="h-1 w-16 bg-emerald-600 rounded-full" />
-                    </div>
-                  )}
-                </motion.div>
-
-                {/* Step 02 - Plan */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ 
-                    opacity: activeStep === 1 ? 1 : 0.3,
-                    x: activeStep === 1 ? 0 : -20
-                  }}
-                  transition={{ duration: 0.4 }}
-                  className={`${activeStep === 1 ? 'scale-100' : 'scale-95'} transition-transform duration-400`}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-400 ${
-                      activeStep === 1 
-                        ? 'bg-emerald-600 text-white shadow-lg' 
-                        : 'bg-slate-200 text-slate-500'
-                    }`}>
-                      02
-                    </div>
-                    <div>
-                      <h3 className="text-3xl font-bold text-slate-900 mb-3">Plan</h3>
-                      <p className="text-lg text-slate-600 leading-relaxed">
-                        AI matches your time and location with what's happening.
-                      </p>
-                    </div>
-                  </div>
-                  {activeStep === 1 && (
-                    <div className="ml-16 mt-4">
-                      <div className="h-1 w-16 bg-emerald-600 rounded-full" />
-                    </div>
-                  )}
-                </motion.div>
-
-                {/* Step 03 - Stay */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ 
-                    opacity: activeStep === 2 ? 1 : 0.3,
-                    x: activeStep === 2 ? 0 : -20
-                  }}
-                  transition={{ duration: 0.4 }}
-                  className={`${activeStep === 2 ? 'scale-100' : 'scale-95'} transition-transform duration-400`}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-400 ${
-                      activeStep === 2 
-                        ? 'bg-emerald-600 text-white shadow-lg' 
-                        : 'bg-slate-200 text-slate-500'
-                    }`}>
-                      03
-                    </div>
-                    <div>
-                      <h3 className="text-3xl font-bold text-slate-900 mb-3">Stay</h3>
-                      <p className="text-lg text-slate-600 leading-relaxed">
-                        Find the right neighborhood, not just a listing.
-                      </p>
-                    </div>
-                  </div>
-                  {activeStep === 2 && (
-                    <div className="ml-16 mt-4">
-                      <div className="h-1 w-16 bg-emerald-600 rounded-full" />
-                    </div>
-                  )}
-                </motion.div>
-
-                {/* Step 04 - Itinerary */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ 
-                    opacity: activeStep === 3 ? 1 : 0.3,
-                    x: activeStep === 3 ? 0 : -20
-                  }}
-                  transition={{ duration: 0.4 }}
-                  className={`${activeStep === 3 ? 'scale-100' : 'scale-95'} transition-transform duration-400`}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-400 ${
-                      activeStep === 3 
-                        ? 'bg-emerald-600 text-white shadow-lg' 
-                        : 'bg-slate-200 text-slate-500'
-                    }`}>
-                      04
-                    </div>
-                    <div>
-                      <h3 className="text-3xl font-bold text-slate-900 mb-3">Itinerary</h3>
-                      <p className="text-lg text-slate-600 leading-relaxed">
-                        Turn picks into a day plan. Approve, save, go.
-                      </p>
-                    </div>
-                  </div>
-                  {activeStep === 3 && (
-                    <div className="ml-16 mt-4">
-                      <div className="h-1 w-16 bg-emerald-600 rounded-full" />
-                    </div>
-                  )}
-                </motion.div>
-
-              </div>
-
-              {/* RIGHT COLUMN - Fixed App Window (60%) */}
-              <div className="lg:col-span-7 relative hidden lg:block">
-                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
+                {/* LEFT COLUMN - Sticky Narrative (40%) */}
+                <div className="lg:col-span-5 space-y-12">
                   
-                  {/* Browser Chrome */}
-                  <div className="bg-slate-100 px-4 py-3 flex items-center gap-2 border-b border-slate-200">
-                    <div className="flex gap-2">
-                      <div className="w-3 h-3 rounded-full bg-red-400" />
-                      <div className="w-3 h-3 rounded-full bg-amber-400" />
-                      <div className="w-3 h-3 rounded-full bg-emerald-400" />
-                    </div>
-                    <div className="flex-1 ml-4">
-                      <div className="bg-white rounded-md px-3 py-1 text-xs text-slate-500 max-w-xs">
-                        app.ilovemedellin.com/dashboard
+                  {/* Step 01 - Discover */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ 
+                      opacity: activeStep === 0 ? 1 : 0.3,
+                      x: activeStep === 0 ? 0 : -20
+                    }}
+                    transition={{ duration: 0.4 }}
+                    className={`${activeStep === 0 ? 'scale-100' : 'scale-95'} transition-transform duration-400`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-400 ${
+                        activeStep === 0 
+                          ? 'bg-emerald-600 text-white shadow-lg' 
+                          : 'bg-slate-200 text-slate-500'
+                      }`}>
+                        01
+                      </div>
+                      <div>
+                        <h3 className="text-3xl font-bold text-slate-900 mb-3">Discover</h3>
+                        <p className="text-lg text-slate-600 leading-relaxed">
+                          Tell us your vibe. We surface the best nearby picks.
+                        </p>
                       </div>
                     </div>
-                  </div>
+                    {activeStep === 0 && (
+                      <div className="ml-16 mt-4">
+                        <div className="h-1 w-16 bg-emerald-600 rounded-full" />
+                      </div>
+                    )}
+                  </motion.div>
 
-                  {/* Dashboard Content - Crossfading Screens */}
-                  <div className="relative bg-slate-50 aspect-[16/10]">
+                  {/* Step 02 - Plan */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ 
+                      opacity: activeStep === 1 ? 1 : 0.3,
+                      x: activeStep === 1 ? 0 : -20
+                    }}
+                    transition={{ duration: 0.4 }}
+                    className={`${activeStep === 1 ? 'scale-100' : 'scale-95'} transition-transform duration-400`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-400 ${
+                        activeStep === 1 
+                          ? 'bg-emerald-600 text-white shadow-lg' 
+                          : 'bg-slate-200 text-slate-500'
+                      }`}>
+                        02
+                      </div>
+                      <div>
+                        <h3 className="text-3xl font-bold text-slate-900 mb-3">Schedule</h3>
+                        <p className="text-lg text-slate-600 leading-relaxed">
+                          See your week at a glance. Book activities and keep time for exploration.
+                        </p>
+                      </div>
+                    </div>
+                    {activeStep === 1 && (
+                      <div className="ml-16 mt-4">
+                        <div className="h-1 w-16 bg-emerald-600 rounded-full" />
+                      </div>
+                    )}
+                  </motion.div>
+
+                  {/* Step 03 - Stay */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ 
+                      opacity: activeStep === 2 ? 1 : 0.3,
+                      x: activeStep === 2 ? 0 : -20
+                    }}
+                    transition={{ duration: 0.4 }}
+                    className={`${activeStep === 2 ? 'scale-100' : 'scale-95'} transition-transform duration-400`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-400 ${
+                        activeStep === 2 
+                          ? 'bg-emerald-600 text-white shadow-lg' 
+                          : 'bg-slate-200 text-slate-500'
+                      }`}>
+                        03
+                      </div>
+                      <div>
+                        <h3 className="text-3xl font-bold text-slate-900 mb-3">Stay</h3>
+                        <p className="text-lg text-slate-600 leading-relaxed">
+                          Find the right neighborhood, not just a listing.
+                        </p>
+                      </div>
+                    </div>
+                    {activeStep === 2 && (
+                      <div className="ml-16 mt-4">
+                        <div className="h-1 w-16 bg-emerald-600 rounded-full" />
+                      </div>
+                    )}
+                  </motion.div>
+
+                  {/* Step 04 - Itinerary */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ 
+                      opacity: activeStep === 3 ? 1 : 0.3,
+                      x: activeStep === 3 ? 0 : -20
+                    }}
+                    transition={{ duration: 0.4 }}
+                    className={`${activeStep === 3 ? 'scale-100' : 'scale-95'} transition-transform duration-400`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-400 ${
+                        activeStep === 3 
+                          ? 'bg-emerald-600 text-white shadow-lg' 
+                          : 'bg-slate-200 text-slate-500'
+                      }`}>
+                        04
+                      </div>
+                      <div>
+                        <h3 className="text-3xl font-bold text-slate-900 mb-3">Itinerary</h3>
+                        <p className="text-lg text-slate-600 leading-relaxed">
+                          Turn picks into a day plan. Approve, save, go.
+                        </p>
+                      </div>
+                    </div>
+                    {activeStep === 3 && (
+                      <div className="ml-16 mt-4">
+                        <div className="h-1 w-16 bg-emerald-600 rounded-full" />
+                      </div>
+                    )}
+                  </motion.div>
+
+                </div>
+
+                {/* RIGHT COLUMN - Fixed App Window (60%) */}
+                <div className="lg:col-span-7 relative hidden lg:block">
+                  <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
                     
-                    {/* Screen 1 - Discover */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: activeStep === 0 ? 1 : 0 }}
-                      transition={{ duration: 0.4 }}
-                      className="absolute inset-0 p-8"
-                    >
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-2xl font-bold text-slate-900 mb-2">Exploring El Poblado</h3>
-                          <p className="text-sm text-slate-600">📍 El Poblado</p>
+                    {/* Browser Chrome */}
+                    <div className="bg-slate-100 px-4 py-3 flex items-center gap-2 border-b border-slate-200">
+                      <div className="flex gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-400" />
+                        <div className="w-3 h-3 rounded-full bg-amber-400" />
+                        <div className="w-3 h-3 rounded-full bg-emerald-400" />
+                      </div>
+                      <div className="flex-1 ml-4">
+                        <div className="bg-white rounded-md px-3 py-1 text-xs text-slate-500 max-w-xs">
+                          app.ilovemedellin.com
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Dashboard Content - FIXED VIEWPORT (500px, NO OVERFLOW) */}
+                    <div className="relative bg-slate-50 h-[500px] overflow-hidden">
+                      
+                      {/* Screen 1 - Discover */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: activeStep === 0 ? 1 : 0 }}
+                        transition={{ duration: 0.4 }}
+                        className="absolute inset-0 p-10 flex flex-col justify-center"
+                      >
+                        {/* Header */}
+                        <div className="mb-8">
+                          <h3 className="text-2xl font-bold text-slate-900">Exploring El Poblado</h3>
                         </div>
                         
-                        <div className="bg-white rounded-lg p-3 border border-slate-200">
+                        {/* Search */}
+                        <div className="bg-white rounded-lg p-3 border border-slate-200 mb-6">
                           <input 
                             type="text" 
                             placeholder="Search places, vibes, cravings..." 
@@ -258,292 +280,178 @@ export function HowItWorksScrollSection() {
                           />
                         </div>
 
-                        <div className="flex gap-2">
-                          <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">All</span>
-                          <span className="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-medium">Restaurants</span>
-                          <span className="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-medium">Coffee</span>
-                        </div>
-
-                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                          <div className="flex items-start gap-2 text-sm">
-                            <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                        {/* AI Context Banner */}
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 mb-8">
+                          <div className="flex items-start gap-3 text-sm">
+                            <Sparkles className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
                             <div>
-                              <p className="font-medium text-emerald-900">Thursday Afternoon in El Poblado</p>
-                              <p className="text-emerald-700 text-xs">24°C — perfect rooftop coffee</p>
+                              <p className="font-semibold text-emerald-900 mb-1">Thursday Afternoon</p>
+                              <p className="text-emerald-700">24°C — perfect rooftop coffee weather</p>
                             </div>
                           </div>
                         </div>
 
-                        <div>
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-bold text-slate-900">Restaurants</h4>
-                            <span className="text-xs text-emerald-600 font-medium">See more →</span>
+                        {/* Restaurant Cards (2 cards) */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-white rounded-xl overflow-hidden border border-emerald-200 shadow-sm">
+                            <div className="h-24 bg-gradient-to-br from-emerald-100 to-emerald-50" />
+                            <div className="p-4">
+                              <p className="font-bold text-sm text-slate-900 mb-1">El Cielo</p>
+                              <p className="text-xs text-slate-600 mb-2">⭐ 4.8 · 0.5km</p>
+                              <span className="inline-block text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-md font-medium">🎯 AI pick</span>
+                            </div>
                           </div>
                           
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-white rounded-lg overflow-hidden border border-emerald-200 shadow-sm">
-                              <div className="h-24 bg-gradient-to-br from-emerald-100 to-emerald-50" />
-                              <div className="p-3">
-                                <p className="font-bold text-sm text-slate-900">El Cielo</p>
-                                <p className="text-xs text-slate-600">⭐ 4.8 · $$ · 0.5km</p>
-                                <span className="inline-block mt-1 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">🎯 AI pick</span>
-                              </div>
-                            </div>
-                            
-                            <div className="bg-white rounded-lg overflow-hidden border border-slate-200 shadow-sm">
-                              <div className="h-24 bg-gradient-to-br from-slate-100 to-slate-50" />
-                              <div className="p-3">
-                                <p className="font-bold text-sm text-slate-900">Carmen</p>
-                                <p className="text-xs text-slate-600">⭐ 4.9 · $$$ · 1.2km</p>
-                                <span className="inline-block mt-1 text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">👥 Popular</span>
-                              </div>
+                          <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                            <div className="h-24 bg-gradient-to-br from-slate-100 to-slate-50" />
+                            <div className="p-4">
+                              <p className="font-bold text-sm text-slate-900 mb-1">Carmen</p>
+                              <p className="text-xs text-slate-600 mb-2">⭐ 4.9 · 1.2km</p>
+                              <span className="inline-block text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-md font-medium">👥 Popular</span>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </motion.div>
+                      </motion.div>
 
-                    {/* Screen 2 - Plan */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: activeStep === 1 ? 1 : 0 }}
-                      transition={{ duration: 0.4 }}
-                      className="absolute inset-0 p-8"
-                    >
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-2xl font-bold text-slate-900 mb-2">Tonight in Laureles</h3>
-                          <p className="text-sm text-slate-600">📍 Laureles</p>
+                      {/* Screen 2 - Plan (Calendar View) */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: activeStep === 1 ? 1 : 0 }}
+                        transition={{ duration: 0.4 }}
+                        className="absolute inset-0 p-10 flex flex-col justify-center"
+                      >
+                        <CalendarScreen compact />
+                      </motion.div>
+
+                      {/* Screen 3 - Stay */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: activeStep === 2 ? 1 : 0 }}
+                        transition={{ duration: 0.4 }}
+                        className="absolute inset-0 p-10 flex flex-col justify-center"
+                      >
+                        {/* Header */}
+                        <div className="mb-8">
+                          <h3 className="text-2xl font-bold text-slate-900">Stays in Envigado</h3>
                         </div>
                         
-                        <div className="bg-white rounded-lg p-3 border border-slate-200">
-                          <input 
-                            type="text" 
-                            placeholder="Search events, venues, vibes..." 
-                            className="w-full text-sm outline-none text-slate-900"
-                            readOnly
-                          />
-                        </div>
-
-                        <div className="flex gap-2">
-                          <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">Tonight ✓</span>
-                          <span className="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-medium">This Weekend</span>
-                          <span className="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-medium">Live Music</span>
-                        </div>
-
-                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                          <div className="flex items-start gap-2 text-sm">
-                            <Calendar className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="font-medium text-amber-900">Tonight's Plan — Based on your vibe</p>
-                              <p className="text-amber-700 text-xs">Cool evening, low rain risk. Best start time: 8:00 PM</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-bold text-slate-900">Events Near You</h4>
-                            <span className="text-xs text-emerald-600 font-medium">See more →</span>
-                          </div>
-                          
-                          <div className="space-y-3">
-                            <div className="bg-white rounded-lg p-4 border border-emerald-200 shadow-sm">
-                              <div className="flex gap-3">
-                                <div className="w-16 h-16 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-lg flex-shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-bold text-sm text-slate-900">Jazz Night @ Alambique</p>
-                                  <p className="text-xs text-slate-600">⏰ 8:00 PM · 1.5km</p>
-                                  <span className="inline-block mt-1 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">🎯 Best match</span>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
-                              <div className="flex gap-3">
-                                <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-50 rounded-lg flex-shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-bold text-sm text-slate-900">Art Gallery Opening</p>
-                                  <p className="text-xs text-slate-600">⏰ 7:30 PM · 2.1km</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-
-                    {/* Screen 3 - Stay */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: activeStep === 2 ? 1 : 0 }}
-                      transition={{ duration: 0.4 }}
-                      className="absolute inset-0 p-8"
-                    >
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-2xl font-bold text-slate-900 mb-2">Stays in Envigado</h3>
-                          <p className="text-sm text-slate-600">📍 Envigado</p>
-                        </div>
-                        
-                        <div className="bg-white rounded-lg p-3 border border-slate-200">
-                          <input 
-                            type="text" 
-                            placeholder="Search rentals, neighborhoods, needs..." 
-                            className="w-full text-sm outline-none text-slate-900"
-                            readOnly
-                          />
-                        </div>
-
-                        <div className="flex gap-2">
-                          <span className="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-medium">Short stay</span>
-                          <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">Monthly ✓</span>
-                          <span className="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-medium">Fast Wi-Fi</span>
-                        </div>
-
-                        <div className="bg-white rounded-lg p-4 border border-slate-200">
-                          <p className="text-xs text-slate-600 mb-2">Budget: $500 — $2000</p>
+                        {/* Budget Slider */}
+                        <div className="bg-white rounded-xl p-5 border border-slate-200 mb-6">
+                          <p className="text-sm text-slate-600 mb-4 font-medium">Budget: $500 — $2000</p>
                           <div className="relative h-2 bg-slate-100 rounded-full">
                             <div className="absolute top-0 left-0 h-2 w-2/3 bg-emerald-600 rounded-full" />
-                            <div className="absolute top-1/2 left-2/3 w-4 h-4 bg-emerald-600 rounded-full -translate-y-1/2 -translate-x-1/2 border-2 border-white shadow" />
+                            <div className="absolute top-1/2 left-2/3 w-5 h-5 bg-emerald-600 rounded-full -translate-y-1/2 -translate-x-1/2 border-2 border-white shadow-md" />
                           </div>
                         </div>
 
-                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                          <div className="flex items-start gap-2 text-sm">
-                            <Home className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                        {/* Neighborhood Insight */}
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 mb-8">
+                          <div className="flex items-start gap-3 text-sm">
+                            <Home className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
                             <div>
-                              <p className="font-medium text-emerald-900">🏘️ Best neighborhoods for your stay</p>
-                              <p className="text-emerald-700 text-xs">Envigado is calmer, walkable, great for longer stays.</p>
+                              <p className="font-semibold text-emerald-900 mb-1">Best for your stay</p>
+                              <p className="text-emerald-700">Envigado is calmer and walkable</p>
                             </div>
                           </div>
                         </div>
 
-                        <div>
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-bold text-slate-900">Top Matches</h4>
-                            <span className="text-xs text-emerald-600 font-medium">See more →</span>
-                          </div>
-                          
-                          <div className="space-y-3">
-                            <div className="bg-white rounded-lg overflow-hidden border border-emerald-200 shadow-sm">
-                              <div className="h-24 bg-gradient-to-br from-emerald-100 to-emerald-50" />
-                              <div className="p-3">
-                                <p className="font-bold text-sm text-slate-900">Modern Studio</p>
-                                <p className="text-xs text-slate-600">$850/mo · ⭐ 4.9 (23)</p>
-                                <p className="text-xs text-slate-500 mt-1">Fast Wi-Fi · Quiet</p>
-                                <span className="inline-block mt-2 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">🎯 Matches your stay</span>
-                              </div>
-                            </div>
+                        {/* Single Featured Rental */}
+                        <div className="bg-white rounded-xl overflow-hidden border border-emerald-200 shadow-md">
+                          <div className="h-32 bg-gradient-to-br from-emerald-100 to-emerald-50" />
+                          <div className="p-5">
+                            <p className="font-bold text-lg text-slate-900 mb-2">Modern Studio</p>
+                            <p className="text-sm text-slate-600 mb-1">$850/mo · ⭐ 4.9 (23 reviews)</p>
+                            <p className="text-xs text-slate-500 mb-3">Fast Wi-Fi · Quiet · Walkable</p>
+                            <span className="inline-block text-xs bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-md font-semibold">🎯 Matches your stay</span>
                           </div>
                         </div>
-                      </div>
-                    </motion.div>
+                      </motion.div>
 
-                    {/* Screen 4 - Itinerary */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: activeStep === 3 ? 1 : 0 }}
-                      transition={{ duration: 0.4 }}
-                      className="absolute inset-0 p-8"
-                    >
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="text-2xl font-bold text-slate-900 mb-1">Saturday in Medellín</h3>
-                            <p className="text-sm text-slate-600">El Poblado → Laureles</p>
-                          </div>
-                          <div className="flex gap-2">
-                            <button className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-medium">
-                              Optimize route
-                            </button>
-                          </div>
+                      {/* Screen 4 - Itinerary (MAXIMALLY SIMPLIFIED) */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: activeStep === 3 ? 1 : 0 }}
+                        transition={{ duration: 0.4 }}
+                        className="absolute inset-0 p-10 flex flex-col justify-center"
+                      >
+                        {/* Header */}
+                        <div className="mb-8">
+                          <h3 className="text-2xl font-bold text-slate-900 mb-1">Saturday in Medellín</h3>
+                          <p className="text-sm text-slate-600">El Poblado → Laureles</p>
                         </div>
 
-                        {/* Timeline */}
-                        <div className="space-y-4">
-                          <div>
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Morning</p>
-                            <div className="bg-white rounded-lg p-3 border border-emerald-200 shadow-sm">
-                              <div className="flex gap-3">
-                                <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-lg flex-shrink-0 flex items-center justify-center text-lg">
-                                  ☕
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-bold text-sm text-slate-900">Café Velvet</p>
-                                  <p className="text-xs text-slate-600">El Poblado · 9:00 AM</p>
-                                  <span className="inline-block mt-1 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">🎯 AI pick</span>
-                                </div>
+                        {/* Timeline (3 compact cards) */}
+                        <div className="space-y-4 mb-8">
+                          {/* Morning */}
+                          <div className="bg-white rounded-xl p-4 border border-emerald-200 shadow-sm">
+                            <div className="flex gap-3 items-center">
+                              <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-lg flex-shrink-0 flex items-center justify-center text-xl">
+                                ☕
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Morning</p>
+                                <p className="font-bold text-sm text-slate-900">Café Velvet</p>
+                                <p className="text-xs text-slate-600">9:00 AM · El Poblado</p>
                               </div>
                             </div>
                           </div>
 
-                          <div>
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Afternoon</p>
-                            <div className="bg-white rounded-lg p-3 border border-slate-200 shadow-sm">
-                              <div className="flex gap-3">
-                                <div className="w-12 h-12 bg-gradient-to-br from-slate-100 to-slate-50 rounded-lg flex-shrink-0 flex items-center justify-center text-lg">
-                                  🌳
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-bold text-sm text-slate-900">Parque Lleras</p>
-                                  <p className="text-xs text-slate-600">El Poblado · 2:00 PM</p>
-                                  <span className="inline-block mt-1 text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded">💾 Saved</span>
-                                </div>
+                          {/* Afternoon */}
+                          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+                            <div className="flex gap-3 items-center">
+                              <div className="w-12 h-12 bg-gradient-to-br from-slate-100 to-slate-50 rounded-lg flex-shrink-0 flex items-center justify-center text-xl">
+                                🌳
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Afternoon</p>
+                                <p className="font-bold text-sm text-slate-900">Parque Lleras</p>
+                                <p className="text-xs text-slate-600">2:00 PM · El Poblado</p>
                               </div>
                             </div>
                           </div>
 
-                          <div>
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Night</p>
-                            <div className="bg-white rounded-lg p-3 border border-emerald-200 shadow-sm">
-                              <div className="flex gap-3">
-                                <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-lg flex-shrink-0 flex items-center justify-center text-lg">
-                                  🎵
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-bold text-sm text-slate-900">Jazz Night</p>
-                                  <p className="text-xs text-slate-600">Laureles · 8:00 PM</p>
-                                  <span className="inline-block mt-1 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">🎯 Best match</span>
-                                </div>
+                          {/* Night */}
+                          <div className="bg-white rounded-xl p-4 border border-emerald-200 shadow-sm">
+                            <div className="flex gap-3 items-center">
+                              <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-lg flex-shrink-0 flex items-center justify-center text-xl">
+                                🎵
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Night</p>
+                                <p className="font-bold text-sm text-slate-900">Jazz Night</p>
+                                <p className="text-xs text-slate-600">8:00 PM · Laureles</p>
                               </div>
                             </div>
                           </div>
                         </div>
 
-                        {/* AI Suggestion */}
-                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-start gap-2 text-xs flex-1">
-                              <Sparkles className="w-3 h-3 text-amber-600 flex-shrink-0 mt-0.5" />
-                              <p className="text-amber-900">
-                                <span className="font-medium">AI Suggestions:</span> Swap dinner to reduce travel (-18 min)
-                              </p>
-                            </div>
-                            <button className="text-amber-700 font-medium text-xs hover:underline">Apply</button>
+                        {/* AI Suggestion Banner */}
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                            <p className="text-sm text-amber-900">
+                              <span className="font-semibold">AI suggests:</span> Swap dinner to save 18 min
+                            </p>
                           </div>
                         </div>
 
-                        {/* Action Bar */}
-                        <div className="bg-slate-100 rounded-lg p-3 flex items-center justify-between">
-                          <p className="text-xs text-slate-600">Preview mode · Nothing booked yet</p>
-                          <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors">
-                            Approve plan
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
+                        {/* Primary Action Button */}
+                        <button className="w-full bg-emerald-600 text-white rounded-xl py-4 text-base font-bold hover:bg-emerald-700 transition-colors shadow-md">
+                          Approve Plan
+                        </button>
+                      </motion.div>
+
+                    </div>
+
+                    {/* Caption */}
+                    <div className="bg-slate-50 px-4 py-2 border-t border-slate-200">
+                      <p className="text-xs text-slate-500 text-center">Real dashboard screens</p>
+                    </div>
 
                   </div>
-
-                  {/* Caption */}
-                  <div className="bg-slate-50 px-4 py-2 border-t border-slate-200">
-                    <p className="text-xs text-slate-500 text-center">Real dashboard screens — not mockups</p>
-                  </div>
-
                 </div>
-              </div>
 
+              </div>
             </div>
           </div>
         </div>
