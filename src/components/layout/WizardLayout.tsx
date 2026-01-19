@@ -1,7 +1,7 @@
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import { Button } from '../ui/button';
 import { ArrowLeft, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useWizard } from '../../context/WizardContext';
 import { cn } from '../../lib/utils/utils';
 import { motion } from 'motion/react';

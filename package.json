@@ -56,6 +56,7 @@
           "react-leaflet": "*",
           "react-resizable-panels": "^2.1.7",
           "react-responsive-masonry": "*",
+          "react-router": "*",
           "react-router-dom": "*",
           "recharts": "^2.15.2",
           "sonner": "^2.0.3",

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { LuxuryHero } from '../components/home/LuxuryHero';
 import { HowItWorksSection } from '../components/landing/HowItWorksSection';
 import { CuratedCategories } from '../components/home/CuratedCategories';

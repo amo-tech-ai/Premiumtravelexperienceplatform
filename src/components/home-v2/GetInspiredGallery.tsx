@@ -75,7 +75,7 @@ export function GetInspiredGallery() {
   };
 
   return (
-    <section className="relative bg-stone-900 py-24 md:py-32">
+    <section className="relative bg-emerald-950 py-24 md:py-32">
       <div className="container mx-auto px-6">
         {/* Header */}
         <motion.div

@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Sparkles, X } from "lucide-react";
 import { useAI } from "../../context/AIContext";
 import { Button } from "../ui/button";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 
 export function ConciergeFab() {
   const { toggleOpen, isOpen } = useAI();

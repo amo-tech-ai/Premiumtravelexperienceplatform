@@ -1,7 +1,7 @@
 import { motion, useScroll, useTransform } from "motion/react";
 import { Button } from "../ui/button";
 import { useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 
 export function LuxuryHero() {

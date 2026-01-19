@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useAI } from '../context/AIContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { 
   Calendar, Map as MapIcon, Trash2, ArrowRight, 
   CalendarClock, Plus, MoreHorizontal

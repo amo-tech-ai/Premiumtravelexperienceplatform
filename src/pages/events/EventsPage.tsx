@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Calendar, MapPin, Clock, Users, Plus } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { useEvents } from '../../lib/hooks/useEvents';

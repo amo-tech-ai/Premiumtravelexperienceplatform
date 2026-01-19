@@ -1,6 +1,6 @@
 import './styles/globals.css';
 import './App.css';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router';
 import { Toaster } from 'sonner@2.0.3';
 import { TripProvider } from './context/TripContext';
 import { WizardProvider } from './context/WizardContext';
@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 
 import Home from './pages/Home';
 import HomeV2 from './pages/HomeV2';
+import HomeV3 from './pages/HomeV3';
 import SliderDemo from './pages/SliderDemo';
 import MedellinExperiencesPage from './pages/MedellinExperiences';
 import ExperienceDetailPage from './pages/ExperienceDetail';
@@ -162,6 +163,7 @@ function App() {
                                     
                                     <Route path="/" element={<Home />} />
                                     <Route path="/home-v2" element={<HomeV2 />} />
+                                    <Route path="/home-v3" element={<HomeV3 />} />
                                     <Route path="/experiences" element={<ExperiencesIndex />} />
                                     <Route path="/experiences/medellin" element={<MedellinExperiencesPage />} />
                                     <Route path="/map" element={<Explorer />} />

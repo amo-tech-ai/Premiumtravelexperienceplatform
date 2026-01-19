@@ -1,424 +1,639 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, useInView } from 'motion/react';
-import { 
-  MessageSquare, Sparkles, Map, Share2, CreditCard, 
-  ArrowRight, Check, Star, Zap, Search, Calendar
+/**
+ * How It Works - Scroll-Driven Product Demo
+ * Breef-style scroll narrative with fixed product window
+ */
+
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { useNavigate } from 'react-router';
+import {
+  Home,
+  MessageSquare,
+  Plane,
+  Compass,
+  Calendar,
+  Utensils,
+  MapPin,
+  Heart,
+  Star,
+  Sparkles,
+  Clock,
+  CheckCircle2,
+  ArrowRight,
+  Shield,
+  RotateCcw
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { cn } from '../components/ui/utils';
 
-// --- Animated Typing Component ---
-const TypingAnimation = ({ texts }: { texts: string[] }) => {
-  const [index, setIndex] = useState(0);
-  const [displayedText, setDisplayedText] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
-  
+export default function HowItWorks() {
+  const navigate = useNavigate();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeStep, setActiveStep] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  // Calculate scroll progress and active step
   useEffect(() => {
-    const handleTyping = () => {
-      const currentText = texts[index];
-      
-      if (isDeleting) {
-        setDisplayedText(prev => prev.substring(0, prev.length - 1));
-      } else {
-        setDisplayedText(prev => currentText.substring(0, prev.length + 1));
-      }
+    const handleScroll = () => {
+      if (!containerRef.current) return;
 
-      if (!isDeleting && displayedText === currentText) {
-        setTimeout(() => setIsDeleting(true), 2000);
-      } else if (isDeleting && displayedText === "") {
-        setIsDeleting(false);
-        setIndex((prev) => (prev + 1) % texts.length);
-      }
+      const container = containerRef.current;
+      const rect = container.getBoundingClientRect();
+      const containerHeight = container.offsetHeight;
+      const viewportHeight = window.innerHeight;
+
+      // Calculate scroll progress within the container
+      const scrollTop = -rect.top;
+      const scrollableHeight = containerHeight - viewportHeight;
+      const progress = Math.max(0, Math.min(1, scrollTop / scrollableHeight));
+
+      setScrollProgress(progress);
+
+      // Determine active step (0-3)
+      const step = Math.floor(progress * 4);
+      setActiveStep(Math.min(3, step));
     };
 
-    const timer = setTimeout(handleTyping, isDeleting ? 50 : 100);
-    return () => clearTimeout(timer);
-  }, [displayedText, isDeleting, index, texts]);
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial calculation
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const steps = [
+    {
+      number: '01',
+      title: 'Discover',
+      description: 'Tell us your vibe. We surface the best nearby picks.',
+      screen: 'discover'
+    },
+    {
+      number: '02',
+      title: 'Plan',
+      description: 'AI matches your schedule and location with what\'s happening tonight.',
+      screen: 'events'
+    },
+    {
+      number: '03',
+      title: 'Stay',
+      description: 'Find the right neighborhood and rental, not just a listing.',
+      screen: 'rentals'
+    },
+    {
+      number: '04',
+      title: 'Itinerary',
+      description: 'Turn picks into a day plan with routes and timing.',
+      screen: 'trips'
+    }
+  ];
 
   return (
-    <span className="font-medium text-slate-800">
-      {displayedText}
-      <span className="animate-pulse">|</span>
-    </span>
-  );
-};
-
-// --- Hero Section ---
-const Hero = () => (
-  <section className="relative pt-32 pb-20 px-6 lg:px-12 overflow-hidden bg-[#FAFAF9]">
-    {/* Subtle Mesh Gradient Background */}
-    <div className="absolute inset-0 z-0 opacity-40">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/50 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-amber-100/50 rounded-full blur-[100px]" />
-    </div>
-
-    <div className="container mx-auto max-w-7xl relative z-10">
-      <div className="flex flex-col lg:flex-row items-center gap-16">
-        
-        {/* Text Content */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="lg:w-1/2"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-emerald-100 shadow-sm mb-8">
-            <Sparkles className="w-4 h-4 text-emerald-600" />
-            <span className="text-sm font-medium text-emerald-900 tracking-wide uppercase">AI-Powered Luxury Travel</span>
-          </div>
-          
-          <h1 className="text-5xl lg:text-7xl font-serif font-medium text-slate-900 leading-[1.1] mb-6">
-            Experience Medellín. <br />
-            <span className="text-emerald-800 italic">Intelligently.</span>
-          </h1>
-          
-          <p className="text-xl text-slate-500 font-light mb-10 max-w-lg leading-relaxed">
-            Plan unforgettable trips with an AI concierge that knows the city like a local. 
-            From hidden rooftop bars to private coffee tours.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link to="/concierge">
-              <Button className="h-14 px-8 rounded-full bg-slate-900 text-white text-lg hover:bg-emerald-800 shadow-xl shadow-emerald-900/10 w-full sm:w-auto transition-all hover:scale-105">
-                Start Planning
-              </Button>
-            </Link>
-            <Link to="/explore">
-              <Button variant="outline" className="h-14 px-8 rounded-full border-slate-300 text-slate-700 text-lg hover:bg-white hover:border-emerald-300 w-full sm:w-auto">
-                Explore Experiences
-              </Button>
-            </Link>
-          </div>
-        </motion.div>
-
-        {/* Hero Visuals */}
-        <motion.div 
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="lg:w-1/2 relative"
-        >
-          {/* Main Image Card */}
-          <div className="relative z-20 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-900/10 rotate-1 hover:rotate-0 transition-transform duration-700 bg-white p-2">
-             <div className="relative rounded-[2rem] overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1591503487373-c466436e2978?q=80&w=1200&auto=format&fit=crop" 
-                  alt="Medellín Cityscape" 
-                  className="w-full h-[500px] object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent flex flex-col justify-end p-8">
-                    <div className="flex gap-2 mb-2">
-                      {['Culture', 'Nightlife', 'Luxury'].map(tag => (
-                        <span key={tag} className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-medium text-white border border-white/10">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <h3 className="text-2xl font-serif text-white">The City of Eternal Spring</h3>
-                    <p className="text-white/80 text-sm mt-1 flex items-center gap-1">
-                        <Map className="w-3 h-3" /> 
-                        El Poblado, Medellín
-                    </p>
-                </div>
-             </div>
-          </div>
-
-          {/* Floating Live Interaction Card */}
-          <motion.div 
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="absolute -top-6 -right-4 md:-right-8 z-30 bg-white/95 backdrop-blur rounded-2xl shadow-xl border border-slate-100 w-[260px] p-4 hidden md:block"
+    <div className="min-h-screen bg-slate-50">
+      
+      {/* Section Header */}
+      <section className="py-20 px-6 text-center bg-white">
+        <div className="max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
           >
-             <div className="flex items-start gap-3 mb-3">
-               <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-                 <Sparkles className="w-4 h-4 text-emerald-700" />
-               </div>
-               <div className="space-y-1">
-                 <p className="text-xs text-slate-400 font-medium">AI Concierge Suggests</p>
-                 <div className="text-sm leading-tight text-slate-700">
-                    How about a <TypingAnimation texts={["rooftop dinner?", "coffee tasting?", "salsa class?"]} />
-                 </div>
-               </div>
-             </div>
-             
-             {/* Mock Actions */}
-             <div className="flex gap-2 mt-3">
-                <div className="h-8 bg-slate-50 border border-slate-100 rounded-lg w-full flex items-center justify-center text-xs font-medium text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer transition-colors">
-                    Yes, book it
-                </div>
-                <div className="h-8 bg-slate-50 border border-slate-100 rounded-lg w-full flex items-center justify-center text-xs font-medium text-slate-500 hover:bg-slate-100 cursor-pointer transition-colors">
-                    View details
-                </div>
-             </div>
-          </motion.div>
+            <span className="inline-block bg-amber-100 text-amber-700 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider mb-6">
+              How It Works
+            </span>
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6">
+              Medellín, organized by one AI concierge.
+            </h1>
+            <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">
+              Restaurants, events, rentals, and itineraries — planned intelligently, approved by you.
+            </p>
 
-          {/* Decorative Elements */}
-          <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        </motion.div>
-      </div>
-    </div>
-  </section>
-);
-
-// --- Step Card Component ---
-const StepCard = ({ number, title, description, icon: Icon, delay, isLast }: any) => {
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.6, delay }}
-            className="relative flex-1"
-        >
-            <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-lg hover:shadow-xl transition-all duration-300 group z-10 h-full flex flex-col items-start relative">
-                <div className="absolute -top-5 -left-3 md:-top-6 md:left-8 w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-xl font-serif font-bold shadow-lg group-hover:bg-emerald-600 transition-colors z-20">
-                    {number}
-                </div>
-                <div className="mt-6 mb-6 w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-emerald-600 group-hover:bg-emerald-50 transition-colors border border-slate-100">
-                    <Icon className="w-7 h-7" />
-                </div>
-                <h3 className="text-2xl font-serif text-slate-900 mb-3">{title}</h3>
-                <p className="text-slate-500 leading-relaxed text-sm">
-                    {description}
-                </p>
+            {/* Trust Indicators */}
+            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-600">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>Preview first</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-emerald-600" />
+                <span>Approve actions</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <RotateCcw className="w-4 h-4 text-emerald-600" />
+                <span>Undo anytime</span>
+              </div>
             </div>
-            
-            {/* Mobile Connector Line */}
-            {!isLast && (
-                <div className="lg:hidden absolute left-8 top-full h-8 w-0.5 bg-slate-200 -ml-[1px] z-0" />
-            )}
-        </motion.div>
-    );
-};
-
-// --- Journey Section ---
-const Journey = () => {
-  const containerRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"]
-  });
-
-  const width = useTransform(scrollYProgress, [0, 0.5], ["0%", "100%"]);
-
-  return (
-    <section ref={containerRef} className="py-32 px-6 lg:px-12 bg-white relative overflow-hidden">
-      <div className="container mx-auto max-w-7xl">
-        <div className="text-center max-w-3xl mx-auto mb-24">
-          <h2 className="text-4xl md:text-5xl font-serif font-medium text-slate-900 mb-6">
-            Your Intelligent Journey
-          </h2>
-          <p className="text-xl text-slate-500 font-light">
-            From a simple question to a fully booked luxury experience in five simple steps.
-          </p>
+          </motion.div>
         </div>
+      </section>
 
-        <div className="relative">
-             {/* Connector Line (Desktop) - Animated */}
-             <div className="hidden lg:block absolute top-[40px] left-0 w-full h-0.5 bg-slate-100 z-0 rounded-full overflow-hidden">
-                 <motion.div style={{ width }} className="h-full bg-emerald-500 origin-left" />
-             </div>
-
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-6 relative z-10">
-                <StepCard 
-                  number="01"
-                  title="Ask"
-                  description="Chat with our AI Concierge. Tell it your vibe, budget, and dreams."
-                  icon={MessageSquare}
-                  delay={0}
-                />
-                <StepCard 
-                  number="02"
-                  title="Suggest"
-                  description="Get personalized recommendations for stays, dining, and events."
-                  icon={Sparkles}
-                  delay={0.1}
-                />
-                <StepCard 
-                  number="03"
-                  title="Build"
-                  description="Drag and drop your favorites into a cohesive day-by-day itinerary."
-                  icon={Map}
-                  delay={0.2}
-                />
-                <StepCard 
-                  number="04"
-                  title="Share"
-                  description="Invite friends to collaborate or share your plan with travel partners."
-                  icon={Share2}
-                  delay={0.3}
-                />
-                <StepCard 
-                  number="05"
-                  title="Book"
-                  description="Secure reservations seamlessly and enjoy your trip."
-                  icon={CreditCard}
-                  delay={0.4}
-                  isLast
-                />
-             </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// --- Features Grid (Why Us) ---
-const Feature = ({ title, desc }: { title: string, desc: string }) => (
-  <div className="flex gap-4 group">
-    <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 mt-1 border border-emerald-100 group-hover:bg-emerald-600 group-hover:border-emerald-600 transition-colors">
-      <Check className="w-4 h-4 text-emerald-600 group-hover:text-white transition-colors" />
-    </div>
-    <div>
-      <h4 className="font-bold text-slate-900 mb-1">{title}</h4>
-      <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
-    </div>
-  </div>
-);
-
-const WhyUs = () => {
-    const ref = useRef(null);
-    const { scrollYProgress } = useScroll({
-        target: ref,
-        offset: ["start end", "end start"]
-    });
-    
-    const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
-
-    return (
-      <section ref={ref} className="py-24 bg-slate-50 relative overflow-hidden">
-        {/* Background Texture */}
-        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
-
-        <div className="container mx-auto px-6 lg:px-12 max-w-7xl relative z-10">
-          <div className="bg-white rounded-[3rem] p-8 md:p-16 shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden relative">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      {/* Scroll-Driven Demo Section */}
+      <section 
+        ref={containerRef}
+        className="relative"
+        style={{ height: '400vh' }}
+      >
+        <div className="sticky top-0 h-screen flex items-center py-12 px-6 overflow-hidden">
+          <div className="max-w-7xl mx-auto w-full">
+            <div className="grid lg:grid-cols-12 gap-8">
               
-              <div>
-                <div className="inline-block px-4 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-bold uppercase tracking-wider mb-6">
-                    Why Choose AI?
-                </div>
-                <h2 className="text-3xl md:text-5xl font-serif font-medium text-slate-900 mb-8 leading-tight">
-                  Stop planning. <br/>Start exploring.
-                </h2>
-                <div className="space-y-8">
-                  <Feature 
-                    title="Local Knowledge, Instantly" 
-                    desc="Access thousands of curated data points about Medellín's best hidden gems without reading 50 blog posts."
-                  />
-                  <Feature 
-                    title="Dynamic Planning" 
-                    desc="Plans change. Our AI adapts your itinerary in seconds if it rains or you wake up late."
-                  />
-                  <Feature 
-                    title="Luxury Curation" 
-                    desc="We filter for quality. Only the best rooftops, chefs, and guides make it into our knowledge base."
-                  />
-                </div>
-                
-                <div className="mt-12 pt-10 border-t border-slate-100">
-                   <div className="flex items-center gap-4">
-                      <div className="flex -space-x-3">
-                         {[1,2,3,4].map(i => (
-                            <div key={i} className="w-12 h-12 rounded-full border-2 border-white bg-slate-200 overflow-hidden shadow-sm">
-                               <img src={`https://i.pravatar.cc/100?img=${i + 20}`} alt="User" />
-                            </div>
-                         ))}
+              {/* Left Column - Sticky Step Indicator */}
+              <div className="lg:col-span-5 flex items-center">
+                <div className="space-y-8 w-full">
+                  {steps.map((step, index) => (
+                    <motion.div
+                      key={step.number}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{
+                        opacity: activeStep === index ? 1 : 0.4,
+                        x: 0
+                      }}
+                      transition={{ duration: 0.3 }}
+                      className={`relative pl-12 ${activeStep === index ? '' : 'cursor-pointer'}`}
+                    >
+                      {/* Active Indicator Bar */}
+                      {activeStep === index && (
+                        <motion.div
+                          layoutId="activeBar"
+                          className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-600 rounded-full"
+                          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        />
+                      )}
+
+                      {/* Step Number */}
+                      <div className={`text-sm font-bold mb-2 ${
+                        activeStep === index ? 'text-emerald-600' : 'text-slate-400'
+                      }`}>
+                        {step.number}
                       </div>
-                      <div>
-                         <div className="flex items-center text-amber-400 text-sm mb-1">
-                            {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 fill-current" />)}
-                         </div>
-                         <p className="text-sm font-bold text-slate-900">Trusted by 2,000+ travelers</p>
-                      </div>
-                   </div>
+
+                      {/* Step Title */}
+                      <h3 className={`text-2xl md:text-3xl font-bold mb-2 transition-colors ${
+                        activeStep === index ? 'text-slate-900' : 'text-slate-500'
+                      }`}>
+                        {step.title}
+                      </h3>
+
+                      {/* Step Description */}
+                      <p className={`text-base md:text-lg transition-colors ${
+                        activeStep === index ? 'text-slate-600' : 'text-slate-400'
+                      }`}>
+                        {step.description}
+                      </p>
+                    </motion.div>
+                  ))}
                 </div>
               </div>
 
-              <div className="relative h-[600px] w-full hidden lg:block rounded-3xl overflow-hidden">
-                 <motion.div style={{ y }} className="absolute inset-0">
-                     <img 
-                       src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=1200&auto=format&fit=crop" 
-                       alt="Luxury Hotel" 
-                       className="w-full h-[120%] object-cover"
-                     />
-                 </motion.div>
-                 
-                 {/* Chat Bubble UI Overlay */}
-                 <div className="absolute bottom-12 left-8 right-8 z-20 bg-white/95 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/40">
-                    <div className="flex gap-4">
-                       <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                          <Sparkles className="w-5 h-5 text-emerald-700" />
-                       </div>
-                       <div className="text-sm text-slate-700">
-                          <p className="font-bold mb-1 text-slate-900 text-base">Personalized Suggestion</p>
-                          <p className="leading-relaxed">Since you enjoy architecture and history, I've added a private guided tour of the <strong>El Castillo Museum</strong> for Sunday morning, followed by brunch in the gardens.</p>
-                       </div>
+              {/* Right Column - Fixed App Window */}
+              <div className="lg:col-span-7">
+                <div className="sticky top-24">
+                  
+                  {/* App Window Shell */}
+                  <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+                    
+                    {/* Browser Chrome */}
+                    <div className="bg-slate-100 px-4 py-3 border-b border-slate-200 flex items-center gap-2">
+                      <div className="flex gap-1.5">
+                        <div className="w-3 h-3 rounded-full bg-slate-300" />
+                        <div className="w-3 h-3 rounded-full bg-slate-300" />
+                        <div className="w-3 h-3 rounded-full bg-slate-300" />
+                      </div>
+                      <div className="flex-1 text-center">
+                        <span className="text-xs text-slate-500 font-medium">Live Dashboard Preview</span>
+                      </div>
                     </div>
-                 </div>
+
+                    {/* Screenshot Container */}
+                    <div className="relative bg-slate-50 aspect-[16/10] overflow-hidden">
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={activeStep}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.4, ease: 'easeInOut' }}
+                          className="absolute inset-0"
+                        >
+                          {activeStep === 0 && <DiscoverScreen />}
+                          {activeStep === 1 && <EventsScreen />}
+                          {activeStep === 2 && <RentalsScreen />}
+                          {activeStep === 3 && <ItineraryScreen />}
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+                  </div>
+
+                  {/* Caption */}
+                  <p className="text-center text-sm text-slate-500 mt-4">
+                    Real dashboard screens — not mockups
+                  </p>
+                </div>
               </div>
 
             </div>
           </div>
         </div>
       </section>
-    );
+
+      {/* CTA Section */}
+      <section className="py-20 px-6 bg-white text-center">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="font-serif text-4xl md:text-5xl font-bold text-slate-900 mb-6">
+            Ready to explore Medellín?
+          </h2>
+          <p className="text-xl text-slate-600 mb-8">
+            Start planning your perfect day with the AI concierge.
+          </p>
+          <Button
+            size="lg"
+            onClick={() => navigate('/app/concierge')}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-base px-8 py-6 rounded-full shadow-lg"
+          >
+            Get Started
+            <ArrowRight className="ml-2 w-5 h-5" />
+          </Button>
+        </div>
+      </section>
+
+    </div>
+  );
 }
 
-// --- CTA Section ---
-const CTA = () => (
-  <section className="py-32 px-6 lg:px-12 bg-[#0F172A] text-white text-center relative overflow-hidden">
-     {/* Background Pattern */}
-     <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,_rgba(16,185,129,0.15),transparent_70%)]" />
-        <div className="absolute top-0 left-0 w-full h-full" style={{ backgroundImage: 'radial-gradient(#334155 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-     </div>
-     
-     <div className="relative z-10 max-w-3xl mx-auto">
-        <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            whileInView={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-2xl mb-8 backdrop-blur-sm border border-white/10 shadow-lg shadow-emerald-500/20"
-        >
-           <Zap className="w-8 h-8 text-amber-400" />
-        </motion.div>
-        
-        <h2 className="text-4xl md:text-6xl font-serif mb-8 leading-tight">
-            Ready to experience <br/>
-            <span className="text-emerald-400">Medellín like a VIP?</span>
-        </h2>
-        
-        <p className="text-xl text-slate-300 mb-12 font-light max-w-xl mx-auto leading-relaxed">
-           Start chatting with our AI Concierge and build your dream itinerary in minutes. No credit card required.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/concierge">
-               <Button className="h-16 px-10 rounded-full bg-white text-slate-900 text-lg hover:bg-emerald-50 font-bold shadow-xl shadow-white/5 w-full sm:w-auto hover:scale-105 transition-all">
-                  Start Planning Now
-               </Button>
-            </Link>
-            <Link to="/how-it-works">
-                <Button variant="outline" className="h-16 px-10 rounded-full border-slate-700 text-white text-lg hover:bg-slate-800 hover:border-slate-600 w-full sm:w-auto">
-                    View Sample Itinerary
-                </Button>
-            </Link>
-        </div>
-     </div>
-  </section>
-);
+// Dashboard Screen Components
 
-export default function HowItWorksPage() {
+function DiscoverScreen() {
   return (
-    <div className="min-h-screen bg-white">
-      <Hero />
-      <Journey />
-      <WhyUs />
-      <CTA />
+    <div className="h-full bg-white flex">
+      {/* Sidebar */}
+      <div className="w-16 bg-slate-900 flex flex-col items-center py-4 gap-4">
+        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+          <span className="text-white font-bold text-xs">I❤️</span>
+        </div>
+        <Home className="w-5 h-5 text-emerald-400" />
+        <MessageSquare className="w-5 h-5 text-slate-500" />
+        <Plane className="w-5 h-5 text-slate-500" />
+        <Compass className="w-5 h-5 text-slate-500" />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-hidden">
+        {/* Top Bar */}
+        <div className="bg-white border-b border-slate-200 p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <MapPin className="w-4 h-4 text-slate-400" />
+            <span className="text-sm font-medium text-slate-600">Exploring · El Poblado</span>
+          </div>
+          <input
+            type="text"
+            placeholder="Search places, vibes, or cravings..."
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-slate-50"
+            readOnly
+          />
+          <div className="flex gap-2 mt-2">
+            <span className="px-3 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">All</span>
+            <span className="px-3 py-1 text-xs font-medium text-slate-600 rounded-full">Restaurants</span>
+            <span className="px-3 py-1 text-xs font-medium text-slate-600 rounded-full">Coffee</span>
+          </div>
+        </div>
+
+        {/* Context Banner */}
+        <div className="bg-emerald-50 border-l-4 border-emerald-500 p-3 m-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles className="w-4 h-4 text-emerald-600" />
+            <h3 className="font-serif font-bold text-sm text-slate-900">Thursday Afternoon in El Poblado</h3>
+          </div>
+          <p className="text-xs text-slate-600">24°C — perfect for a rooftop coffee. Here are top picks near you.</p>
+        </div>
+
+        {/* Restaurant Cards */}
+        <div className="p-3">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-bold text-sm text-slate-900">Restaurants</h4>
+            <button className="text-xs text-emerald-600 font-medium">See more</button>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="bg-white border border-slate-200 rounded-xl p-2 flex gap-2">
+              <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-lg flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <h5 className="font-bold text-xs text-slate-900 truncate">El Cielo</h5>
+                  <Heart className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                </div>
+                <div className="flex items-center gap-1 mb-1">
+                  <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                  <span className="text-xs text-slate-600">4.8 · $$ · 0.5 km</span>
+                </div>
+                <div className="inline-block bg-emerald-50 px-2 py-0.5 rounded text-xs text-emerald-700 font-medium">
+                  AI pick · Great rooftop views
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl p-2 flex gap-2">
+              <div className="w-20 h-20 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-lg flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <h5 className="font-bold text-xs text-slate-900 truncate">Carmen</h5>
+                  <Heart className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                </div>
+                <div className="flex items-center gap-1 mb-1">
+                  <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                  <span className="text-xs text-slate-600">4.9 · $$$ · 1.2 km</span>
+                </div>
+                <div className="inline-block bg-emerald-50 px-2 py-0.5 rounded text-xs text-emerald-700 font-medium">
+                  Popular with locals · Easy walk
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EventsScreen() {
+  return (
+    <div className="h-full bg-white flex">
+      {/* Sidebar */}
+      <div className="w-16 bg-slate-900 flex flex-col items-center py-4 gap-4">
+        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+          <span className="text-white font-bold text-xs">I❤️</span>
+        </div>
+        <Home className="w-5 h-5 text-slate-500" />
+        <MessageSquare className="w-5 h-5 text-slate-500" />
+        <Calendar className="w-5 h-5 text-emerald-400" />
+        <Utensils className="w-5 h-5 text-slate-500" />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-hidden">
+        {/* Top Bar */}
+        <div className="bg-white border-b border-slate-200 p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <MapPin className="w-4 h-4 text-slate-400" />
+            <span className="text-sm font-medium text-slate-600">Tonight in · Laureles</span>
+          </div>
+          <input
+            type="text"
+            placeholder="Search events, venues, or vibes..."
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-slate-50"
+            readOnly
+          />
+          <div className="flex gap-2 mt-2">
+            <span className="px-3 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Tonight</span>
+            <span className="px-3 py-1 text-xs font-medium text-slate-600 rounded-full">This Weekend</span>
+            <span className="px-3 py-1 text-xs font-medium text-slate-600 rounded-full">Live Music</span>
+          </div>
+        </div>
+
+        {/* Context Banner */}
+        <div className="bg-sky-50 border-l-4 border-sky-500 p-3 m-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Clock className="w-4 h-4 text-sky-600" />
+            <h3 className="font-serif font-bold text-sm text-slate-900">Tonight's Plan — Based on your vibe</h3>
+          </div>
+          <p className="text-xs text-slate-600">Cool evening, low rain risk. Best start time: 8:00 PM.</p>
+        </div>
+
+        {/* Event Cards */}
+        <div className="p-3">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-bold text-sm text-slate-900">Events Near You</h4>
+            <button className="text-xs text-emerald-600 font-medium">See more</button>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="bg-white border-2 border-emerald-200 rounded-xl p-2 flex gap-2">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <span className="inline-block bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs font-medium mb-1">
+                  Live Music
+                </span>
+                <h5 className="font-bold text-xs text-slate-900 mb-1">Jazz Night at Alambique</h5>
+                <div className="flex items-center gap-1 text-xs text-slate-600 mb-1">
+                  <Clock className="w-3 h-3" />
+                  <span>8:00 PM · 1.5 km</span>
+                </div>
+                <div className="inline-block bg-emerald-50 px-2 py-0.5 rounded text-xs text-emerald-700 font-medium">
+                  Best match · Short Uber
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl p-2 flex gap-2">
+              <div className="w-20 h-20 bg-gradient-to-br from-rose-100 to-orange-100 rounded-lg flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <span className="inline-block bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-xs font-medium mb-1">
+                  Culture
+                </span>
+                <h5 className="font-bold text-xs text-slate-900 mb-1">Art Gallery Opening</h5>
+                <div className="flex items-center gap-1 text-xs text-slate-600 mb-1">
+                  <Clock className="w-3 h-3" />
+                  <span>7:30 PM · 2.1 km</span>
+                </div>
+                <div className="inline-block bg-slate-100 px-2 py-0.5 rounded text-xs text-slate-600 font-medium">
+                  Good crowd · Fits your schedule
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RentalsScreen() {
+  return (
+    <div className="h-full bg-white flex">
+      {/* Sidebar */}
+      <div className="w-16 bg-slate-900 flex flex-col items-center py-4 gap-4">
+        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+          <span className="text-white font-bold text-xs">I❤️</span>
+        </div>
+        <Home className="w-5 h-5 text-emerald-400" />
+        <MessageSquare className="w-5 h-5 text-slate-500" />
+        <Calendar className="w-5 h-5 text-slate-500" />
+        <MapPin className="w-5 h-5 text-slate-500" />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-hidden">
+        {/* Top Bar */}
+        <div className="bg-white border-b border-slate-200 p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <MapPin className="w-4 h-4 text-slate-400" />
+            <span className="text-sm font-medium text-slate-600">Stays in · Envigado</span>
+          </div>
+          <input
+            type="text"
+            placeholder="Search rentals, neighborhoods, or needs..."
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-slate-50"
+            readOnly
+          />
+          <div className="flex gap-2 mt-2">
+            <span className="px-3 py-1 text-xs font-medium text-slate-600 rounded-full">Short stay</span>
+            <span className="px-3 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Monthly</span>
+            <span className="px-3 py-1 text-xs font-medium text-slate-600 rounded-full">Fast Wi-Fi</span>
+          </div>
+        </div>
+
+        {/* Context Banner */}
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-3 m-3">
+          <div className="flex items-center gap-2 mb-1">
+            <MapPin className="w-4 h-4 text-amber-600" />
+            <h3 className="font-serif font-bold text-sm text-slate-900">Best neighborhoods for your stay</h3>
+          </div>
+          <p className="text-xs text-slate-600">Envigado is calmer, walkable, great for longer stays.</p>
+        </div>
+
+        {/* Rental Cards */}
+        <div className="p-3">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-bold text-sm text-slate-900">Top Matches</h4>
+            <button className="text-xs text-emerald-600 font-medium">See more</button>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="bg-white border-2 border-emerald-200 rounded-xl p-2">
+              <div className="w-full h-24 bg-gradient-to-br from-sky-100 to-blue-100 rounded-lg mb-2" />
+              <h5 className="font-serif font-bold text-xs text-slate-900 mb-1">Modern Studio in Envigado</h5>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold text-slate-900">$850/mo</span>
+                <div className="flex items-center gap-0.5">
+                  <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />
+                  <span className="text-xs text-slate-600">4.9 (23)</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1 mb-1">
+                <span className="px-2 py-0.5 text-xs bg-slate-100 text-slate-600 rounded">Fast Wi-Fi</span>
+                <span className="px-2 py-0.5 text-xs bg-slate-100 text-slate-600 rounded">Quiet street</span>
+              </div>
+              <div className="inline-block bg-emerald-50 px-2 py-0.5 rounded text-xs text-emerald-700 font-medium">
+                Matches your stay
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl p-2">
+              <div className="w-full h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg mb-2" />
+              <h5 className="font-serif font-bold text-xs text-slate-900 mb-1">Cozy Loft with Terrace</h5>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold text-slate-900">$920/mo</span>
+                <div className="flex items-center gap-0.5">
+                  <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />
+                  <span className="text-xs text-slate-600">4.8 (17)</span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-600">Near cafés + gym · 8 min walk</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ItineraryScreen() {
+  return (
+    <div className="h-full bg-white flex">
+      {/* Sidebar */}
+      <div className="w-16 bg-slate-900 flex flex-col items-center py-4 gap-4">
+        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+          <span className="text-white font-bold text-xs">I❤️</span>
+        </div>
+        <Home className="w-5 h-5 text-slate-500" />
+        <MessageSquare className="w-5 h-5 text-slate-500" />
+        <Plane className="w-5 h-5 text-emerald-400" />
+        <Calendar className="w-5 h-5 text-slate-500" />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-hidden">
+        {/* Top Bar */}
+        <div className="bg-white border-b border-slate-200 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-serif font-bold text-sm text-slate-900">Saturday in Medellín</h3>
+            <div className="flex gap-1">
+              <button className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded">
+                Optimize route
+              </button>
+              <button className="px-2 py-1 text-xs font-medium border border-slate-200 text-slate-600 rounded">
+                Share
+              </button>
+            </div>
+          </div>
+          <p className="text-xs text-slate-500">El Poblado → Laureles</p>
+        </div>
+
+        {/* Timeline */}
+        <div className="p-3 space-y-3">
+          
+          {/* Morning */}
+          <div>
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Morning</div>
+            <div className="bg-white border border-slate-200 rounded-xl p-2 flex gap-2">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-lg flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <h5 className="font-bold text-xs text-slate-900 mb-0.5">Café Velvet</h5>
+                <p className="text-xs text-slate-600 mb-1">El Poblado · 9:00 AM</p>
+                <span className="inline-block px-2 py-0.5 text-xs bg-emerald-50 text-emerald-700 rounded">
+                  AI pick
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Afternoon */}
+          <div>
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Afternoon</div>
+            <div className="bg-white border border-slate-200 rounded-xl p-2 flex gap-2">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <h5 className="font-bold text-xs text-slate-900 mb-0.5">Parque Lleras</h5>
+                <p className="text-xs text-slate-600 mb-1">El Poblado · 2:00 PM</p>
+                <span className="inline-block px-2 py-0.5 text-xs bg-slate-100 text-slate-600 rounded">
+                  Saved
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Night */}
+          <div>
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Night</div>
+            <div className="bg-white border border-emerald-200 rounded-xl p-2 flex gap-2">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <h5 className="font-bold text-xs text-slate-900 mb-0.5">Jazz Night</h5>
+                <p className="text-xs text-slate-600 mb-1">Laureles · 8:00 PM</p>
+                <span className="inline-block px-2 py-0.5 text-xs bg-emerald-50 text-emerald-700 rounded">
+                  Best match
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* AI Suggestions */}
+        <div className="mx-3 mb-3 p-2 bg-amber-50 rounded-xl border border-amber-200">
+          <div className="flex items-center gap-1 mb-1">
+            <Sparkles className="w-3 h-3 text-amber-600" />
+            <h4 className="font-bold text-xs text-slate-900">AI Suggestions</h4>
+          </div>
+          <p className="text-xs text-slate-600 mb-1">Swap dinner to reduce travel time (-18 min)</p>
+          <button className="text-xs font-medium text-emerald-600">Apply</button>
+        </div>
+
+        {/* Approval Control */}
+        <div className="mx-3 p-2 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between">
+          <span className="text-xs text-slate-600">Preview mode · Nothing booked yet</span>
+          <button className="px-2 py-1 text-xs font-bold bg-emerald-600 text-white rounded">
+            Approve plan
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

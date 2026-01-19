@@ -1,12 +1,12 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Instagram, Twitter } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 
 export function Footer() {
   return (
-    <footer className="bg-slate-900 text-slate-300 py-16 border-t border-slate-800">
+    <footer className="bg-emerald-950 text-slate-300 py-16 border-t border-emerald-900">
       <div className="container mx-auto px-6 lg:px-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           
@@ -67,6 +67,15 @@ export function Footer() {
                   Home V2 ✨
                 </Link>
               </li>
+              <li>
+                <Link 
+                  to="/home-v3" 
+                  className="flex items-center gap-2 hover:text-white transition-colors font-semibold text-emerald-400"
+                >
+                  <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                  Home V3 ✨
+                </Link>
+              </li>
               <li><Link to="/slider-demo" className="hover:text-white transition-colors">Slider Component</Link></li>
               <li>
                 <Link 
@@ -119,7 +128,7 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+        <div className="pt-8 border-t border-emerald-900 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
           <p>© 2025 Medellín AI Concierge. All rights reserved.</p>
           <div className="flex gap-6">
             <Link to="/privacy-policy" className="hover:text-slate-300">Privacy Policy</Link>

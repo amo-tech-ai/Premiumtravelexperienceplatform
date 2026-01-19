@@ -9,13 +9,13 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { useTripV2 } from '../context/TripV2Context';
 import { 
   ArrowLeft, 
   Calendar, 
   MapPin, 
-  Users, 
+  Users,
   DollarSign,
   Cloud,
   ChevronRight,

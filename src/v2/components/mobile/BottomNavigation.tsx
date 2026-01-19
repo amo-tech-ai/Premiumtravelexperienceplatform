@@ -5,7 +5,7 @@
  * Persistent across V2 routes
  */
 
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 import { Home, Map, Sparkles, User } from 'lucide-react';
 import { useAIV2 } from '../../context/AIV2Context';
 import { motion } from 'motion/react';

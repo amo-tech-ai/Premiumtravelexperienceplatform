@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { MoreVertical } from 'lucide-react';
 import { Trip } from '../../types/trip';
 import { TouchTargetButton } from '../mobile/TouchTarget';

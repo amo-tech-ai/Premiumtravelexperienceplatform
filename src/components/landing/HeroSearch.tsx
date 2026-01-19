@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, MapPin, Coffee, Mountain, Moon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { slowScale, fadeInUp } from '../../utils/animation';
 
 const QUICK_CHIPS = [

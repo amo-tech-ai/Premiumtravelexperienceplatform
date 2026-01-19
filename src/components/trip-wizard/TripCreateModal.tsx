@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Loader2, Plus, MapPin, Calendar, Users, DollarSign, Info, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import config from '../../config/runtime';
 import { motion } from 'motion/react';
 

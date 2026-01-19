@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useTripV2 } from '../context/TripV2Context';
 import { Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { TouchTargetButton } from '../components/mobile/TouchTarget';

@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import { LuxuryCard } from "../ui/LuxuryCard";
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Button } from "../ui/button";
 
 const categories = [

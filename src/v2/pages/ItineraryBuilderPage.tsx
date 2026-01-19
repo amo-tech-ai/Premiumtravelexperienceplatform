@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { useTripV2 } from '../context/TripV2Context';
 import { useAIV2 } from '../context/AIV2Context';
 import { ArrowLeft, Plus, Calendar, DollarSign, Clock, AlertCircle, Sparkles } from 'lucide-react';

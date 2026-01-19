@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useTripV2 } from '../context/TripV2Context';
 import { TripV2 } from '../types';
 import { X, ChevronLeft } from 'lucide-react';

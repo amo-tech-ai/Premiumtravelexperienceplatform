@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { MessageSquare, Briefcase, Compass, Heart, Bell, Zap, PlusSquare, Menu, LogOut, Sparkles, Home, Calendar, Utensils, Car } from 'lucide-react';
+import { Home, Map, Calendar, MessageCircle, Heart, BookOpen, User, Sparkles, X, PlusSquare, LogOut } from 'lucide-react';
 import { cn } from '../../lib/utils/utils';
+import { useState } from 'react';
 import { Button } from '../ui/button';
-import { motion } from 'motion/react';
+import { useAI } from '../../context/AIContext';
 import { useWizard } from '../../context/WizardContext';
 
-import { useNavigate, useLocation, NavLink } from 'react-router-dom';
+import { useNavigate, useLocation, NavLink } from 'react-router';
 
 interface SidebarProps {
   className?: string;
@@ -18,12 +18,10 @@ export function Sidebar({ className }: SidebarProps) {
   
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
-    { icon: MessageSquare, label: 'Chats', path: '/chats', count: 2 },
-    { icon: Briefcase, label: 'Trips', path: '/itineraries' },
-    { icon: Compass, label: 'Explore', path: '/explore' },
+    { icon: MessageCircle, label: 'Chats', path: '/chats', count: 2 },
+    { icon: BookOpen, label: 'Trips', path: '/itineraries' },
+    { icon: Map, label: 'Explore', path: '/explore' },
     { icon: Calendar, label: 'Events', path: '/events' },
-    { icon: Utensils, label: 'Restaurants', path: '/restaurants' },
-    { icon: Car, label: 'Rentals', path: '/rentals' },
     { icon: Heart, label: 'Saved', path: '/saved' },
     { icon: Sparkles, label: 'Concierge', path: '/concierge' },
   ];

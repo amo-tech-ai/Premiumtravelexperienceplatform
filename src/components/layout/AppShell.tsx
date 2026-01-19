@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import { TopNav } from "./TopNav";
 import { BottomNav } from "./BottomNav";
 import { Sidebar } from "./Sidebar";

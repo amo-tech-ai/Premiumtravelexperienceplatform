@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Search, ChevronDown } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { AIStatusIndicator } from '../ai/AIStatusIndicator';
 import { SettingsButton } from '../settings/SettingsButton';
