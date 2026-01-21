@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { HowItWorksScrollSection } from '../components/HowItWorksScrollSection';
+import { AIFeaturesSection } from '../components/AIFeaturesSection';
 
 export default function HomeV3() {
   const navigate = useNavigate();
@@ -528,6 +529,9 @@ export default function HomeV3() {
 
       {/* 4. HOW IT WORKS - Scroll-Driven Product Demo */}
       <HowItWorksScrollSection />
+
+      {/* 4.5 AI FEATURES SECTION - Everything You Need */}
+      <AIFeaturesSection />
 
       {/* 5. FEATURE SECTIONS (Alternating Layout) */}
       {featureSections.map((section, index) => (

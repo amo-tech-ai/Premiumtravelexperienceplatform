@@ -12,6 +12,7 @@ import { HowItWorksMobile } from './HowItWorksMobile';
 import { HowItWorksTablet } from './HowItWorksTablet';
 import { getPrefersReducedMotion } from '../utils/motionPreferences';
 import { CalendarScreen } from './CalendarScreen';
+import { DiscoverSlideAnimated } from './demo-slides/DiscoverSlideAnimated';
 
 export function HowItWorksScrollSection() {
   const [activeStep, setActiveStep] = useState(0);
@@ -255,62 +256,17 @@ export function HowItWorksScrollSection() {
                       </div>
                     </div>
 
-                    {/* Dashboard Content - FIXED VIEWPORT (500px, NO OVERFLOW) */}
-                    <div className="relative bg-slate-50 h-[500px] overflow-hidden">
+                    {/* Dashboard Content - FIXED VIEWPORT (600px for Discover, 500px for others) */}
+                    <div className="relative bg-slate-50 overflow-hidden" style={{ height: activeStep === 0 ? '600px' : '500px' }}>
                       
                       {/* Screen 1 - Discover */}
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: activeStep === 0 ? 1 : 0 }}
                         transition={{ duration: 0.4 }}
-                        className="absolute inset-0 p-10 flex flex-col justify-center"
+                        className="absolute inset-0 flex items-center justify-center"
                       >
-                        {/* Header */}
-                        <div className="mb-8">
-                          <h3 className="text-2xl font-bold text-slate-900">Exploring El Poblado</h3>
-                        </div>
-                        
-                        {/* Search */}
-                        <div className="bg-white rounded-lg p-3 border border-slate-200 mb-6">
-                          <input 
-                            type="text" 
-                            placeholder="Search places, vibes, cravings..." 
-                            className="w-full text-sm outline-none text-slate-900"
-                            readOnly
-                          />
-                        </div>
-
-                        {/* AI Context Banner */}
-                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 mb-8">
-                          <div className="flex items-start gap-3 text-sm">
-                            <Sparkles className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="font-semibold text-emerald-900 mb-1">Thursday Afternoon</p>
-                              <p className="text-emerald-700">24°C — perfect rooftop coffee weather</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Restaurant Cards (2 cards) */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-white rounded-xl overflow-hidden border border-emerald-200 shadow-sm">
-                            <div className="h-24 bg-gradient-to-br from-emerald-100 to-emerald-50" />
-                            <div className="p-4">
-                              <p className="font-bold text-sm text-slate-900 mb-1">El Cielo</p>
-                              <p className="text-xs text-slate-600 mb-2">⭐ 4.8 · 0.5km</p>
-                              <span className="inline-block text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-md font-medium">🎯 AI pick</span>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                            <div className="h-24 bg-gradient-to-br from-slate-100 to-slate-50" />
-                            <div className="p-4">
-                              <p className="font-bold text-sm text-slate-900 mb-1">Carmen</p>
-                              <p className="text-xs text-slate-600 mb-2">⭐ 4.9 · 1.2km</p>
-                              <span className="inline-block text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-md font-medium">👥 Popular</span>
-                            </div>
-                          </div>
-                        </div>
+                        <DiscoverSlideAnimated />
                       </motion.div>
 
                       {/* Screen 2 - Plan (Calendar View) */}

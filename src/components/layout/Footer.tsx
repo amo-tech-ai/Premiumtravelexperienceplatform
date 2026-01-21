@@ -116,6 +116,15 @@ export function Footer() {
                   How It Works V4 ✨
                 </Link>
               </li>
+              <li>
+                <Link 
+                  to="/demo-slide-preview" 
+                  className="flex items-center gap-2 hover:text-white transition-colors font-semibold text-blue-400"
+                >
+                  <span className="inline-block w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                  Demo Slide Preview ✨
+                </Link>
+              </li>
               <li><Link to="/use-cases" className="hover:text-white transition-colors">Use Cases</Link></li>
               <li><Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
               <li><Link to="/profile" className="hover:text-white transition-colors">My Profile</Link></li>
