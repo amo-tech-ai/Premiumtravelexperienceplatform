@@ -8,7 +8,7 @@ import { ResultsTabs, ViewMode } from './ResultsTabs';
 import { ResultsList } from './ResultsList';
 import { ResultsMap } from './ResultsMap';
 import { AgentStatusPanel } from './AgentStatusPanel';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 export const AIConcierge = () => {
   const navigate = useNavigate();

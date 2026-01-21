@@ -1,11 +1,7 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { DiningCard } from './cards/DiningCard';
-import { PropertyCard } from '../real-estate/PropertyCard';
 import { ExperienceCard } from '../ui/ExperienceCard';
 import { AIIntent } from '../../context/AIContext';
 import { MOCK_DINING_RESULTS, MOCK_STAY_RESULTS, MOCK_EVENT_RESULTS } from './MockData';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 interface ResultsListProps {
   intent: AIIntent;

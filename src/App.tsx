@@ -42,6 +42,7 @@ import StyleGuidePage from './pages/StyleGuide';
 import ArchitecturePage from './pages/Architecture'; // Internal Docs
 import HowItWorksPage from './pages/HowItWorks'; // Public Page
 import HowItWorksV2 from './pages/HowItWorksV2'; // Detailed Walkthrough
+import HowItWorksV4 from './pages/HowItWorksV4'; // Scroll-Driven Storytelling
 import Dashboard from './pages/Dashboard';
 import TripDiscoveryDashboard from './pages/TripDiscoveryDashboard';
 import ExplorePage from './pages/ExplorePage';
@@ -56,6 +57,7 @@ import ProductionStatus from './pages/ProductionStatus';
 import { InstallPrompt } from './components/pwa/InstallPrompt';
 import FeatureGallery from './pages/FeatureGallery';
 import AdvancedAIDemo from './components/ai/AdvancedAIDemo';
+import FeaturesPage from './pages/FeaturesPage';
 
 // New App Pages
 import TripsPage from './pages/app/TripsPage';
@@ -188,6 +190,7 @@ function App() {
                                     <Route path="/architecture" element={<ArchitecturePage />} />
                                     <Route path="/how-it-works" element={<HowItWorksPage />} />
                                     <Route path="/how-it-works-v2" element={<HowItWorksV2 />} />
+                                    <Route path="/how-it-works-v4" element={<HowItWorksV4 />} />
                                     <Route path="/pricing" element={<Pricing />} />
                                     <Route path="/use-cases" element={<UseCasesIndex />} />
                                     <Route path="/use-cases/digital-nomad" element={<DigitalNomadPage />} />
@@ -198,6 +201,7 @@ function App() {
                                     
                                     {/* Feature Gallery & AI Demo */}
                                     <Route path="/features" element={<FeatureGallery />} />
+                                    <Route path="/features-ilm" element={<FeaturesPage />} />
                                     <Route path="/ai-demo" element={<AdvancedAIDemo />} />
                                     <Route path="/slider-demo" element={<SliderDemo />} />
                                     <Route path="/tab-nav-demo" element={<TabNavigationDemo />} />

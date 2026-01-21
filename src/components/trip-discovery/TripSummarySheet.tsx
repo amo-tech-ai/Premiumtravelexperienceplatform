@@ -6,7 +6,7 @@ import { useTrip } from '../../context/TripContext';
 import { Trash2, Calendar, MapPin, ArrowRight } from 'lucide-react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { toast } from 'sonner@2.0.3';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 export function TripSummarySheet() {
   const { savedIds, events, stays, experiences, removeFromTrip } = useTrip();

@@ -76,6 +76,15 @@ export function Footer() {
                   Home V3 ✨
                 </Link>
               </li>
+              <li>
+                <Link 
+                  to="/features-ilm" 
+                  className="flex items-center gap-2 hover:text-white transition-colors font-semibold text-emerald-400"
+                >
+                  <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                  Features ✨
+                </Link>
+              </li>
               <li><Link to="/slider-demo" className="hover:text-white transition-colors">Slider Component</Link></li>
               <li>
                 <Link 
@@ -98,6 +107,15 @@ export function Footer() {
               <li><Link to="/chatbot" className="hover:text-white transition-colors">AI Chatbot (Old)</Link></li>
               <li><Link to="/how-it-works" className="hover:text-white transition-colors">How it Works (Quick)</Link></li>
               <li><Link to="/how-it-works-v2" className="hover:text-white transition-colors">How it Works (Detailed)</Link></li>
+              <li>
+                <Link 
+                  to="/how-it-works-v4" 
+                  className="flex items-center gap-2 hover:text-white transition-colors font-semibold text-emerald-400"
+                >
+                  <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                  How It Works V4 ✨
+                </Link>
+              </li>
               <li><Link to="/use-cases" className="hover:text-white transition-colors">Use Cases</Link></li>
               <li><Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
               <li><Link to="/profile" className="hover:text-white transition-colors">My Profile</Link></li>

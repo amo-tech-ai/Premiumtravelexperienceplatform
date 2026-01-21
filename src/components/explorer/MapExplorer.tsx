@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Filter, MapPin, Navigation } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ExperienceCard } from '../ui/ExperienceCard';
+import { useNavigate, useSearchParams } from 'react-router';
 
 const MOCK_EXPERIENCES = [
   {
@@ -28,7 +27,7 @@ const MOCK_EXPERIENCES = [
     title: 'Envy Rooftop Bar',
     rating: 4.7,
     reviewCount: 89,
-    image: 'https://images.unsplash.com/photo-1763675111499-acc7a7f52d78?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRlbGxpbiUyMHJvb2Z0b3AlMjBiYXIlMjBsdXh1cnl8ZW58MXx8fHwxNzY1OTIzMjk4fDA&ixlib=rb-4.1.0&q=80&w=600',
+    image: 'https://images.unsplash.com/photo-1763675111499-acc7a7f52d78?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRlbGxpbiUyMHJvb2Z0b3AlMjBiYXIlMjBsdXh0cnl8ZW58MXx8fHwxNzY1OTIzMjk4fDA&ixlib=rb-4.1.0&q=80&w=600',
     category: 'Nightlife',
     location: 'El Poblado'
   },

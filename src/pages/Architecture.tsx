@@ -5,7 +5,7 @@ import {
   ArrowRight, Search, MessageSquare, CreditCard, 
   MapPin, Globe, Link as LinkIcon, Zap, User, Users
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { cn } from '../components/ui/utils';
 
 // Shared Components

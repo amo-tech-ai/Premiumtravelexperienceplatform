@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { MapPin } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { AIIntent } from '../../context/AIContext';
 import { MOCK_DINING_RESULTS, MOCK_EVENT_RESULTS, MOCK_STAY_RESULTS } from './MockData';
 

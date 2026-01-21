@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { DetailHero } from '../components/experiences/DetailHero';
 import { QuickFacts } from '../components/experiences/QuickFacts';
 import { VisualStory } from '../components/experiences/VisualStory';
