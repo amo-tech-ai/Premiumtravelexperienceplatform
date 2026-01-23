@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Utensils, Ticket, Bed, Map } from 'lucide-react';
 import { LuxuryCard } from '../ui/LuxuryCard';
 import { useWizard } from '../../context/WizardContext';

@@ -163,7 +163,9 @@ function App() {
                                     <Route path="/v2/trips/:tripId" element={<TripCommandCenterPage />} />
                                     <Route path="/v2/trips/:tripId/itinerary" element={<ItineraryBuilderPage />} />
                                     
-                                    <Route path="/" element={<Home />} />
+                                    {/* Home Routes - V3 is default */}
+                                    <Route path="/" element={<HomeV3 />} />
+                                    <Route path="/home" element={<Home />} />
                                     <Route path="/home-v2" element={<HomeV2 />} />
                                     <Route path="/home-v3" element={<HomeV3 />} />
                                     <Route path="/experiences" element={<ExperiencesIndex />} />

@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Search, Sparkles, ArrowRight, PlayCircle } from 'lucide-react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 export const RealEstateHero = () => {
   const navigate = useNavigate();

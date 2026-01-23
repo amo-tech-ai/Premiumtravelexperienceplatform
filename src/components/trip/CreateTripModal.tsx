@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Calendar, MapPin, Users, DollarSign, Sparkles } from 'lucide-react';
+import { MapPin, Calendar, Users, DollarSign, Sparkles } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { formatCurrency, daysBetween, formatDateRange } from '../../utils/formatting';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 interface CreateTripModalProps {
   open: boolean;

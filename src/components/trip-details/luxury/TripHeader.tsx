@@ -15,7 +15,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { Button } from '../../ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { cn } from '../../ui/utils';
 import { 
   Sheet, 

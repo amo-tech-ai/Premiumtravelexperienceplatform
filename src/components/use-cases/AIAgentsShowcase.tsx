@@ -1,8 +1,8 @@
-import { motion, useInView } from 'motion/react';
-import { useRef } from 'react';
+import React from 'react';
+import { motion } from 'motion/react';
 import { LucideIcon, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 interface AIAgent {
   name: string;
@@ -17,7 +17,7 @@ interface AIAgentsShowcaseProps {
 }
 
 export function AIAgentsShowcase({ agents }: AIAgentsShowcaseProps) {
-  const ref = useRef(null);
+  const ref = React.useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
