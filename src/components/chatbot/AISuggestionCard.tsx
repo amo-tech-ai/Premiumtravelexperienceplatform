@@ -10,7 +10,7 @@ import { Sparkles, ArrowRight, Eye, X, Check } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { cn } from '../ui/utils';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 // ============================================================================
 // TYPES

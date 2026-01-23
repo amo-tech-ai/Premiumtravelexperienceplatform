@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { useCreateRestaurant } from '../../lib/hooks/useRestaurants';

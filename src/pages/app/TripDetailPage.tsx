@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { MapPin, Calendar, Plus, Settings, Share2, Download, Edit2, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';

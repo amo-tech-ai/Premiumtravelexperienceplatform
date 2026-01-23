@@ -19,7 +19,7 @@ import {
   Route
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 export default function GroupTripPage() {
   // Problem Statement Data

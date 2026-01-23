@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { PropertyCard, PropertyCardProps } from '../../components/real-estate/PropertyCard';
 import { Search, Filter, SlidersHorizontal, Map, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';

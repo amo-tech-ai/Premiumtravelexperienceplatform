@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Heart, Search, Filter, MapPin, Grid3x3, List, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';

@@ -15,7 +15,7 @@ import { cn } from "../components/ui/utils";
 
 import { DateRange } from "react-day-picker@8.10.1";
 import { addDays } from "date-fns@3.6.0";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 
 import { TripPlannerLayout } from "../components/itinerary/TripPlannerLayout";
 

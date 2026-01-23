@@ -1,5 +1,5 @@
 import './styles/globals.css';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router';
 import { Toaster } from 'sonner@2.0.3';
 import { TripProvider } from './context/TripContext';
 import { WizardProvider } from './context/WizardContext';
@@ -90,6 +90,9 @@ import CreateTripWizardPage from './v2/pages/CreateTripWizardPage';
 import TripCommandCenterPage from './v2/pages/TripCommandCenterPage';
 import ItineraryBuilderPage from './v2/pages/ItineraryBuilderPage';
 
+// AI Analysis
+import AIAnalysisPage from './pages/AIAnalysisPage';
+
 // ScrollToTop component
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -140,7 +143,7 @@ const ServiceInitializer = () => {
 function App() {
   return (
     <ErrorBoundary>
-      <Router>
+      <BrowserRouter>
         <ErrorBoundary>
           <AIProvider>
             <ErrorBoundary>
@@ -247,6 +250,9 @@ function App() {
                                     <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                                     <Route path="/terms-of-service" element={<TermsOfService />} />
 
+                                    {/* AI Analysis */}
+                                    <Route path="/ai-analysis" element={<AIAnalysisPage />} />
+
                                     {/* 404 Route */}
                                     <Route path="*" element={<NotFound />} />
                                   </Routes>
@@ -267,7 +273,7 @@ function App() {
             </ErrorBoundary>
           </AIProvider>
         </ErrorBoundary>
-      </Router>
+      </BrowserRouter>
     </ErrorBoundary>
   );
 }

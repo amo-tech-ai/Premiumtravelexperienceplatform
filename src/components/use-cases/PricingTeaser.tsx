@@ -1,9 +1,9 @@
 import { motion, useInView } from 'motion/react';
 import { useRef } from 'react';
-import { Check, ArrowRight, Sparkles } from 'lucide-react';
+import { Check, Sparkles, Zap } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 interface PricingTeaserProps {
   planName: string;
@@ -134,7 +134,7 @@ export function PricingTeaser({
             >
               <Link to={ctaLink}>
                 {ctaText}
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <Zap className="w-5 h-5 ml-2" />
               </Link>
             </Button>
 

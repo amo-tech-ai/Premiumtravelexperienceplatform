@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { motion, useScroll, useTransform, useInView } from 'motion/react';
 import { 
   MessageSquare, 

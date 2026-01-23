@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { ChevronRight, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/button';

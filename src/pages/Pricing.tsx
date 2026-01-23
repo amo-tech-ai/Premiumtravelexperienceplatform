@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { Sparkles } from 'lucide-react';
 import { PricingHero } from '../components/pricing/PricingHero';
 import { PricingCard } from '../components/pricing/PricingCard';

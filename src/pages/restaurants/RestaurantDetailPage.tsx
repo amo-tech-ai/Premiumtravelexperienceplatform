@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { MapPin, Star, Phone, Globe, Clock, DollarSign, ArrowLeft, Share2, Heart, Plus } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { useRestaurant } from '../../lib/hooks/useRestaurants';

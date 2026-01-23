@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { motion } from 'motion/react';
 import { ArrowRight, MapPin, Calendar, Users, Sparkles } from 'lucide-react';
 import { Button } from '../components/ui/button';

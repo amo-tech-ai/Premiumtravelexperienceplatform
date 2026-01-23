@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { MapPin, DollarSign, Users, Car, Fuel, ArrowLeft, Share2, Heart, Plus } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { useRental } from '../../lib/hooks/useRentals';

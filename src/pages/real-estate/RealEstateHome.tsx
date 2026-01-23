@@ -1,12 +1,11 @@
-import React from 'react';
+import { motion } from 'motion/react';
+import { LuxuryCard } from '../../components/ui/LuxuryCard';
+import { Link } from 'react-router';
+import { ArrowRight } from 'lucide-react';
+import { Button } from '../../components/ui/button';
 import { RealEstateHero } from '../../components/real-estate/RealEstateHero';
 import { MarketInsights } from '../../components/real-estate/MarketInsights';
 import { NeighborhoodSlider } from '../../components/real-estate/NeighborhoodSlider';
-import { motion } from 'motion/react';
-import { LuxuryCard } from '../../components/ui/LuxuryCard';
-import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
-import { Button } from '../../components/ui/button';
 
 const FEATURED_PROPERTIES = [
   {

@@ -14,7 +14,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Map as MapIcon, List, X, ChevronDown, ChevronUp, AlertCircle, RefreshCw } from 'lucide-react';
 import { PlaceCard } from '../components/explore/PlaceCard';

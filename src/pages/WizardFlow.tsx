@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { WizardLayout } from '../components/layout/WizardLayout';
 import { FilterWizard } from '../components/wizard/FilterWizard';
 import { useWizard } from '../context/WizardContext';

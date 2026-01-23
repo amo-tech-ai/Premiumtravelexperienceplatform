@@ -2,7 +2,7 @@ import { motion, useInView } from 'motion/react';
 import { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, Clock, DollarSign, MapPin } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 interface Activity {
   time: string;
